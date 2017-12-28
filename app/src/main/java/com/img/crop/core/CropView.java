@@ -75,7 +75,7 @@ public class CropView extends GLView {
     
     //如小尺寸图片[如32x32以下尺寸的图片]裁剪时，有时会出现裁剪框离边缘有较小的缝隙。
     //MAX_SCALE值设置越大，缝隙越明显。[图片绘制/高亮框/裁剪素材绘制的算法不一致导致，根本原因：精度丢失]
-    private static final float MAX_SCALE = 15.0f;
+    private static final float MAX_SCALE = 100.0f;
 
     private float mAspectRatio = UNSPECIFIED;
     private float mSpotlightRatioX = 0;

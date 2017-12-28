@@ -1,7 +1,6 @@
 package com.img.crop;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -38,12 +37,12 @@ import com.img.crop.core.TileImageViewAdapter;
 import com.img.crop.exif.ExifData;
 import com.img.crop.exif.ExifOutputStream;
 import com.img.crop.glsrender.gl11.BitmapScreenNail;
-import com.img.crop.utils.BitmapUtils;
 import com.img.crop.glsrender.gl11.GLRoot;
 import com.img.crop.thdpool.Future;
 import com.img.crop.thdpool.FutureListener;
 import com.img.crop.thdpool.ThreadPool.Job;
 import com.img.crop.thdpool.ThreadPool.JobContext;
+import com.img.crop.utils.BitmapUtils;
 import com.img.crop.utils.CropUtils;
 import com.img.crop.utils.LocalImageRequest;
 import com.img.crop.utils.SynchronizedHandler;

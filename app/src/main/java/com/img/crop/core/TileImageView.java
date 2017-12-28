@@ -23,7 +23,6 @@ import com.img.crop.thdpool.ThreadPool;
 import com.img.crop.thdpool.ThreadPool.Job;
 import com.img.crop.thdpool.ThreadPool.JobContext;
 import com.img.crop.thdpool.ThreadPool.CancelListener;
-import com.img.crop.utils.TileBitmapPool;
 import com.img.crop.utils.Utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;

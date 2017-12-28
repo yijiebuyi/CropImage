@@ -9,7 +9,6 @@ import android.graphics.Canvas;
 import com.img.crop.glsrender.gl11.BitmapScreenNail;
 import com.img.crop.utils.BitmapUtils;
 import com.img.crop.glsrender.gl11.ScreenNail;
-import com.img.crop.utils.TileBitmapPool;
 
 public class BitmapTileProvider implements TileImageView.Model {
     private final ScreenNail mScreenNail;

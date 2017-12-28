@@ -12,7 +12,6 @@ import android.util.Log;
 import com.img.crop.utils.ApiHelper;
 import com.img.crop.glsrender.gl11.BitmapScreenNail;
 import com.img.crop.glsrender.gl11.ScreenNail;
-import com.img.crop.utils.TileBitmapPool;
 import com.img.crop.utils.Utils;
 
 public class TileImageViewAdapter implements TileImageView.Model {

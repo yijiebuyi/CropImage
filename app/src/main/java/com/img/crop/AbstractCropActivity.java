@@ -28,8 +28,7 @@ public class AbstractCropActivity extends FragmentActivity implements CropContex
 
         Configuration cfg = getResources().getConfiguration();
         float fontScale = cfg.fontScale;
-        fontScale = Utils.clamp(fontScale, Utils.FONT_SCALE_NORMAL,
-                Utils.FONT_SCALE_BIG);
+        fontScale = Utils.clamp(fontScale, Utils.FONT_SCALE_NORMAL, Utils.FONT_SCALE_BIG);
         Utils.sFontScale = fontScale;
         Utils.sLocale = cfg.locale;
     }

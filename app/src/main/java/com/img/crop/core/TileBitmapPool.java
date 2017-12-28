@@ -1,6 +1,8 @@
-package com.img.crop.utils;
+package com.img.crop.core;
 
 import android.graphics.Bitmap;
+
+import com.img.crop.utils.Utils;
 
 import java.util.ArrayList;
 
