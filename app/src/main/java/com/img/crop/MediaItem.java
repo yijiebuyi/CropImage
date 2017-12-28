@@ -1,7 +1,6 @@
 package com.img.crop;
 
 /*
- * Copyright (C) 2017 重庆呼我出行网络科技有限公司
  * 版权所有
  *
  * 功能描述：

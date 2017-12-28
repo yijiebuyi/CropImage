@@ -11,21 +11,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import com.img.crop.utils.CropUtils;
 
-/*  =======================================================================================
- *  Copyright (C) 2016 Xiaojs.cn. All rights reserved.
- *
- *  This computer program source code file is protected by copyright law and international
- *  treaties. Unauthorized distribution of source code files, programs, or portion of the
- *  package, may result in severe civil and criminal penalties, and will be prosecuted to
- *  the maximum extent under the law.
- *
- *  ---------------------------------------------------------------------------------------
- * Author:huangyong
- * Date:2016/11/24
- * Desc:
- *
- * ======================================================================================== */
-
 public class LoadingView extends View {
     private final static int DEFAULT_SIZE = 70;
     private final static int MSG_ANIM = 100;
