@@ -1,0 +1,22 @@
+<resources>
+    <!-- configuration activity_crop_imagemage customview -->
+    <dimen name="cropimage_crop_frame_padding">6dp</dimen>
+    <dimen name="cropimage_cropratio_height">116.5dp</dimen>
+    <dimen name="cropimage_cropratio_result_height">41.25dp</dimen>
+    <dimen name="cropimage_cropratio_actionview_height">75.25dp</dimen>
+    <dimen name="cropimage_cropratio_margin_edge">12dp</dimen>
+    <dimen name="cropimage_cropratio_text_margin_top">1dp</dimen>
+    <dimen name="customize_crop_tilte_height">31.6dp</dimen>
+    <dimen name="customize_crop_title_size">14sp</dimen>
+    <dimen name="customize_crop_text_textsize">18dp</dimen>
+    <dimen name="customize_crop_text_marginleft">6dp</dimen>
+    <dimen name="customize_crop_edit_width">180dp</dimen>
+    <dimen name="customize_crop_edit_item_width">222dp</dimen>
+    <dimen name="customize_crop_edit_item_height">40dp</dimen>
+    <dimen name="customize_crop_edit_marginleft">12dp</dimen>
+    <dimen name="customize_crop_edit_item_marginleft">8dp</dimen>
+    <dimen name="customize_crop_edit_item_marginbottom">8dp</dimen>
+    <dimen name="customize_crop_lock_layout_width">42dp</dimen>
+    <dimen name="customize_crop_lock_layout_height">96dp</dimen>
+    <dimen name="customize_crop_lock_padding_left">22dp</dimen>
+</resources>

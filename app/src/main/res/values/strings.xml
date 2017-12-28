@@ -1,0 +1,26 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">图片裁剪</string>
+    <string name="details_ms">%1$02d:%2$02d</string>
+    <string name="details_hms">%1$d:%2$02d:%3$02d</string>
+    <string name="cancel">取消</string>
+    <string name="save_as">另存为</string>
+    <string name="if_remain_original_file">保存图片?</string>
+    <string name="overwrite">覆盖</string>
+    <string name="rotate">rotate</string>
+    <string name="confirm">确定</string>
+    <string name="input_crop_size">输入裁剪尺寸</string>
+    <string name="crop_width_text">宽</string>
+    <string name="crop_height_text">高</string>
+    <string name="crop_width_unacceptable_minsize">裁剪的宽度不能小于1</string>
+    <string name="crop_height_unacceptable_minsize">裁剪的高度不能小于1</string>
+    <string name="crop_width_exceed">裁剪的宽度不能大于<xliff:g id="SIZE">%s</xliff:g></string>
+    <string name="crop_height_exceed">裁剪的高度不能大于<xliff:g id="SIZE">%s</xliff:g></string>
+    <string name="select_image">选择照片</string>
+
+    <string name="freely_crop_aspect">无限制</string>
+    <string name="one_one_crop_aspect">1:1</string>
+    <string name="three_two_crop_aspect">3:2</string>
+    <string name="four_three_crop_aspect">4:3</string>
+    <string name="sixteen_nine_crop_aspect">16:9</string>
+    <string name="custom_crop_aspect">自定义</string>
+</resources>

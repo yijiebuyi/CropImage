@@ -1,0 +1,42 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="CropMenuTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/cropimage_cropratio_text_margin_top</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/crop_image_ratio_color</item>
+    </style>
+
+
+    <style name="CustomizeCropTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/customize_crop_tilte_height</item>
+        <item name="android:gravity">bottom|center_horizontal</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:text">@string/input_crop_size</item>
+        <item name="android:textColor">@color/customize_crop_title_gray</item>
+        <item name="android:textSize">@dimen/customize_crop_title_size</item>
+    </style>
+
+    <style name="CustomizeCropEditText" parent="@android:style/Widget.DeviceDefault.Light.EditText">
+        <item name="android:layout_width">@dimen/customize_crop_edit_width</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/customize_crop_edit_color</item>
+        <item name="android:textSize">@dimen/customize_crop_text_textsize</item>
+        <item name="android:background">@null</item>
+        <item name="android:imeOptions">flagNoFullscreen</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:layout_marginLeft">@dimen/customize_crop_edit_marginleft</item>
+    </style>
+
+</resources>

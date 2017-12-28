@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="crop_background">#fffafafa</color>
+    <color name="crop_text_dark_black_color">#bb000000</color>
+    <color name="crop_image_ratio_color">#bb000000</color>
+    <color name="customize_crop_title_gray">#808080</color>
+    <color name="customize_crop_edit_color">#808080</color>
+    <color name="crop_blue">#32a5e7</color>
+
+    <color name="loading_orange">#ff9833</color>
+    <color name="loading_blue">#0076ff</color>
+</resources>
