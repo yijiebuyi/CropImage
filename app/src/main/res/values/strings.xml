@@ -8,6 +8,7 @@
     <string name="overwrite">覆盖</string>
     <string name="rotate">rotate</string>
     <string name="confirm">确定</string>
+    <string name="finish">完成</string>
     <string name="input_crop_size">输入裁剪尺寸</string>
     <string name="crop_width_text">宽</string>
     <string name="crop_height_text">高</string>

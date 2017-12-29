@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="selects_pic">
+        <item>相册选取</item>
+        <item>相机拍摄</item>
+        <item>取消</item>
+    </string-array>
+    <string-array name="selects_pic_p">
+        <item>预览</item>
+        <item>相册选取</item>
+        <item>相机拍摄</item>
+        <item>取消</item>
+    </string-array>
+    <string-array name="selects_pic_d">
+        <item>相册选取</item>
+        <item>相机拍摄</item>
+        <item>删除</item>
+        <item>取消</item>
+    </string-array>
+    <string-array name="selects_pic_pd">
+        <item>预览</item>
+        <item>相册选取</item>
+        <item>相机拍摄</item>
+        <item>删除</item>
+        <item>取消</item>
+    </string-array>
+    <string-array name="selects_pic_pdc">
+        <item>设为封面</item>
+        <item>预览</item>
+        <item>相册选取</item>
+        <item>相机拍摄</item>
+        <item>删除</item>
+        <item>取消</item>
+    </string-array>
+</resources>

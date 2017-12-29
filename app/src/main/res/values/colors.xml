@@ -13,4 +13,9 @@
 
     <color name="loading_orange">#ff9833</color>
     <color name="loading_blue">#0076ff</color>
+
+    <!--horizontal divide line-->
+    <color name="hor_divide_line">#E0E0E0</color>
+    <!--vertical divide line-->
+    <color name="ver_divide_line">#E0E0E0</color>
 </resources>

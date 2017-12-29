@@ -54,7 +54,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class CropImageActivity extends AbstractCropActivity {
+public class CropImageActivity extends AbstractCropActivity implements CropConstants {
     private static final String TAG = "CropImageActivity";
 
     private static final int MAX_PIXEL_COUNT = 1000000 / 32; // according to TransactionTooLargeException
@@ -76,26 +76,6 @@ public class CropImageActivity extends AbstractCropActivity {
     // Change these to Images.Media.WIDTH/HEIGHT after they are unhidden.
     private static final String WIDTH = "width";
     private static final String HEIGHT = "height";
-
-    public static final String KEY_RETURN_DATA = "return-data";
-    public static final String KEY_CROPPED_RECT = "cropped-rect";
-    public static final String KEY_ASPECT_X = "aspectX";
-    public static final String KEY_ASPECT_Y = "aspectY";
-    public static final String KEY_SPOTLIGHT_X = "spotlightX";
-    public static final String KEY_SPOTLIGHT_Y = "spotlightY";
-    public static final String KEY_OUTPUT_X = "outputX";
-    public static final String KEY_OUTPUT_Y = "outputY";
-    public static final String KEY_OUTPUT_MAX_X = "outputMaxX";
-    public static final String KEY_OUTPUT_MAX_Y = "outputMaxY";
-    public static final String KEY_SCALE = "scale";
-    public static final String KEY_DATA = "data";
-    public static final String KEY_SCALE_UP_IF_NEEDED = "scaleUpIfNeeded";
-    public static final String KEY_OUTPUT_FORMAT = "outputFormat";
-    public static final String KEY_NO_FACE_DETECTION = "noFaceDetection";
-    public static final String KEY_RETURN_PATH_IF_TOO_LARGE = "return-path-if-too-large";
-    public static final String KEY_FILE_PATH = "filePath";
-    public static final String KEY_CONFIRM_OVERWRITE = "confirm-overwrite";
-    public static final String KEY_COMPRESS_FORMAT = "compress-format";
 
     private static final int ASPECT_FREE = 0;
     private static final int ASPECT_1_1 = 1;
@@ -1056,10 +1036,9 @@ public class CropImageActivity extends AbstractCropActivity {
     }
 
     private MediaItem getMediaItemFromIntentData() {
-        //Uri uri = getIntent().getData();
-        //TODO
+        Uri uri = getIntent().getData();
         MediaItem item = new MediaItem();
-        item.filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.jpg";
+        item.filePath = uri.getPath();
         item.setMimeType("image/jpg");
         return item;
     }
