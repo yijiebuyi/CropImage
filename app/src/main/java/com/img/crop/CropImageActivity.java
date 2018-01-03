@@ -1039,6 +1039,7 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         Uri uri = getIntent().getData();
         MediaItem item = new MediaItem();
         item.filePath = uri.getPath();
+        item.setRotation(BitmapUtils.getOrientationFromPath(item.filePath));
         item.setMimeType("image/jpg");
         return item;
     }
