@@ -45,6 +45,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/cropimage_cropratio_actionview_height"
+        android:layout_marginBottom="2dp"
         android:baselineAligned="false"
         android:gravity="center_vertical"
         android:orientation="horizontal"

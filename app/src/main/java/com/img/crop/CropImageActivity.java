@@ -931,7 +931,7 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         mMediaItem = getMediaItemFromIntentData();
         if (mMediaItem == null) return;
 
-        boolean supportedByBitmapRegionDecoder = false;
+        boolean supportedByBitmapRegionDecoder = true;
         //TODO
         //(mMediaItem.getSupportedOperations() & MediaItem.SUPPORT_FULL_IMAGE) != 0;
         if (supportedByBitmapRegionDecoder) {

@@ -3,7 +3,7 @@
     <dimen name="cropimage_crop_frame_padding">6dp</dimen>
     <dimen name="cropimage_cropratio_height">116.5dp</dimen>
     <dimen name="cropimage_cropratio_result_height">41.25dp</dimen>
-    <dimen name="cropimage_cropratio_actionview_height">75.25dp</dimen>
+    <dimen name="cropimage_cropratio_actionview_height">50dp</dimen>
     <dimen name="cropimage_cropratio_margin_edge">12dp</dimen>
     <dimen name="cropimage_cropratio_text_margin_top">1dp</dimen>
     <dimen name="customize_crop_tilte_height">31.6dp</dimen>
