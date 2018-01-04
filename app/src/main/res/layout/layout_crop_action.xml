@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/crop_background"
+    android:background="@color/crop_bottom_bar_background"
     android:orientation="vertical">
 
 
@@ -13,9 +13,10 @@
         <TextView
             android:id="@+id/crop_ratio_result"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/cropimage_cropratio_result_height"
+            android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="40dp"
+            android:padding="10dp"
             android:textColor="@color/crop_text_dark_black_color"
             android:textSize="16sp" />
 
@@ -25,6 +26,7 @@
             android:layout_height="@dimen/cropimage_cropratio_result_height"
             android:layout_marginRight="40dp"
             android:layout_toLeftOf="@+id/save"
+            android:padding="10dp"
             android:text="@string/rotate"
             android:textSize="16sp" />
 
@@ -34,6 +36,7 @@
             android:layout_height="@dimen/cropimage_cropratio_result_height"
             android:layout_alignParentRight="true"
             android:layout_marginRight="40dp"
+            android:padding="10dp"
             android:text="@string/confirm"
             android:textSize="16sp" />
     </RelativeLayout>
