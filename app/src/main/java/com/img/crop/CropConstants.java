@@ -16,6 +16,7 @@ import android.os.Environment;
  */
 public interface CropConstants {
     public static final String CROP_ACTION = "com.img.crop.Action";
+    public static final String NEED_CROP = "need-crop";
 
     public static final String KEY_EXTRA_ACTION = "extra-action";
     public static final String KEY_RETURN_DATA = "return-data";
@@ -44,13 +45,11 @@ public interface CropConstants {
     public static final int CHOOSE_IMAGE = 1; // 选择图片
     public static final int TAKE_PHOTO = 2; // 拍照
     public static final int CROP_IMAGE_REQUEST_CODE = 3; // 裁剪
-    public static final int START_CROP_IMAGE = 4; // 开始裁剪
 
     public static final int SELECT_PIC_REQUEST = 2000;    // 剪切图片的requestcode
     public static final String UPLOAD_IMAGE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/crop/image_upload.jpg"; // 选择图片地址
 
     public static final String CROP_IMAGE_PATH_TAG = "cropImagePath"; // 返回图片intent
-    // key
 
     public static final String CROP_IMAGE_PATH = "/crop/crop_image"; // 剪切后的图片地址
 }

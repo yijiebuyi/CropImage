@@ -1,5 +1,6 @@
 package com.img.crop.core;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -9,6 +10,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.LongSparseArray;
 
+import com.img.crop.CropAppImpl;
 import com.img.crop.CropContext;
 import com.img.crop.utils.ApiHelper;
 import com.img.crop.utils.CropUtils;
@@ -122,10 +124,14 @@ public class TileImageView extends GLView {
     private boolean mNeedChangeTextureFilter = false;
     private int mChangeTextureFilter = GL11.GL_LINEAR;
 
+
     public static interface Model {
         public int getLevelCount();
+
         public ScreenNail getScreenNail();
+
         public int getImageWidth();
+
         public int getImageHeight();
 
         // The tile returned by this method can be specified this way: Assuming
@@ -144,20 +150,25 @@ public class TileImageView extends GLView {
                               int borderSize, TileBitmapPool pool);
     }
 
-    public TileImageView(CropContext context) {
-        mThreadPool = context.getThreadPool();
+    public TileImageView(Context context) {
+        Context appContext = context.getApplicationContext();
+        if (appContext instanceof CropAppImpl) {
+            mThreadPool = ((CropAppImpl) appContext).getThreadPool();
+        } else {
+            mThreadPool = new ThreadPool();
+        }
         mTileDecoder = mThreadPool.submit(new TileDecoder());
         if (TILE_SIZE == 0) {
-            if (CropUtils.isHighResolution(context.getAndroidContext())) {
-                TILE_SIZE = 510 ;
+            if (CropUtils.isHighResolution(context)) {
+                TILE_SIZE = 510;
             } else {
                 TILE_SIZE = 254;
             }
             BITMAP_SIZE = TILE_SIZE + TILE_BORDER * 2;
             sTilePool =
                     ApiHelper.HAS_REUSING_BITMAP_IN_BITMAP_REGION_DECODER
-                    ? new TileBitmapPool(BITMAP_SIZE, BITMAP_SIZE, 128)
-                    : null;
+                            ? new TileBitmapPool(BITMAP_SIZE, BITMAP_SIZE, 128)
+                            : null;
         }
     }
 
@@ -167,10 +178,10 @@ public class TileImageView extends GLView {
     }
 
     public void setScreenNail(ScreenNail s) {
-    	if (s == mScreenNail) return;
-	    mScreenNail = s;
+        if (s == mScreenNail) return;
+        mScreenNail = s;
     }
-    
+
     public void notifyModelInvalidated() {
         invalidateTiles();
         if (mModel == null) {
@@ -299,7 +310,7 @@ public class TileImageView extends GLView {
     // (cX, cY) is the point on the original bitmap which will be put in the
     // center of the ImageViewer.
     private void getRange(Rect out,
-            float cX, float cY, int level, float scale, int rotation) {
+                          float cX, float cY, int level, float scale, int rotation) {
 
         double radians = Math.toRadians(-rotation);
         double w = getWidth();
@@ -441,21 +452,21 @@ public class TileImageView extends GLView {
                     }
                 }
             } else if (mScreenNail != null) {
-            	if (mScreenNail.isCamera()) {
-            		int width = getWidth();
-            		int height = getHeight();
-            		if (width > height) {
-            			mOffsetY = -Math.round(width / 2f - mCenterX);
-            			if (width == 1280) mOffsetY = -mOffsetX;
-            		} else {
-            			if (mCenterY != 900){
-            				mOffsetY = Math.abs(mOffsetX / 3);
-            			}
-            			if (mOffsetY > 180) {
-            				mOffsetY = 180;
-            			}
-            		}
-            	}
+                if (mScreenNail.isCamera()) {
+                    int width = getWidth();
+                    int height = getHeight();
+                    if (width > height) {
+                        mOffsetY = -Math.round(width / 2f - mCenterX);
+                        if (width == 1280) mOffsetY = -mOffsetX;
+                    } else {
+                        if (mCenterY != 900) {
+                            mOffsetY = Math.abs(mOffsetX / 3);
+                        }
+                        if (mOffsetY > 180) {
+                            mOffsetY = 180;
+                        }
+                    }
+                }
                 mScreenNail.draw(canvas, mOffsetX, mOffsetY,
                         Math.round(mImageWidth * mScale),
                         Math.round(mImageHeight * mScale));
@@ -475,7 +486,7 @@ public class TileImageView extends GLView {
     }
 
     private boolean isScreenNailAnimating() {
-    	return mScreenNail != null ? mScreenNail.isAnimating() : false;
+        return mScreenNail != null ? mScreenNail.isAnimating() : false;
     }
 
     private void uploadBackgroundTiles(GLCanvas canvas) {
@@ -600,13 +611,13 @@ public class TileImageView extends GLView {
     }
 
     public void setChangeTextureFilter(int filter) {
-    	mChangeTextureFilter = filter;
+        mChangeTextureFilter = filter;
     }
-    
+
     // Draw the tile to a square at canvas that locates at (x, y) and
     // has a side length of length.
     public void drawTile(GLCanvas canvas,
-            int tx, int ty, int level, float x, float y, float length) {
+                         int tx, int ty, int level, float x, float y, float length) {
         RectF source = mSourceRect;
         RectF target = mTargetRect;
         target.set(x, y, x + length, y + length);
@@ -614,10 +625,10 @@ public class TileImageView extends GLView {
 
         Tile tile = getTile(tx, ty, level);
         if (tile != null) {
-          	if (tile.getTextureFilter() != mChangeTextureFilter) {
-        		tile.restTexureFilterFlag(mChangeTextureFilter);
-            	tile.updateTexTextureFilter(canvas);
-        	}
+            if (tile.getTextureFilter() != mChangeTextureFilter) {
+                tile.restTexureFilterFlag(mChangeTextureFilter);
+                tile.updateTexTextureFilter(canvas);
+            }
             if (!tile.isContentValid()) {
                 if (tile.mTileState == STATE_DECODED) {
                     if (mUploadQuota > 0) {
@@ -626,7 +637,7 @@ public class TileImageView extends GLView {
                     } else {
                         mRenderComplete = false;
                     }
-                } else if (tile.mTileState != STATE_DECODE_FAIL){
+                } else if (tile.mTileState != STATE_DECODE_FAIL) {
                     mRenderComplete = false;
                     queueForDecode(tile);
                 }
@@ -795,7 +806,7 @@ public class TileImageView extends GLView {
             jc.setCancelListener(mNotifier);
             while (!jc.isCancelled()) {
                 Tile tile = null;
-                synchronized(TileImageView.this) {
+                synchronized (TileImageView.this) {
                     tile = mDecodeQueue.pop();
                     if (tile == null && !jc.isCancelled()) {
                         Utils.waitWithoutInterrupt(TileImageView.this);

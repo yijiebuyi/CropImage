@@ -14,12 +14,6 @@ import com.img.crop.utils.Utils;
 
 public class AbstractCropActivity extends FragmentActivity implements CropContext {
     private GLRootView mGLRootView;
-    protected IntentType mIntentType = new IntentType();
-
-    public static class IntentType {
-        public int mType;
-        public int mMimeType;
-    }
 
     @Override
     protected void onCreate(Bundle arg0) {
@@ -102,14 +96,10 @@ public class AbstractCropActivity extends FragmentActivity implements CropContex
     public ThreadPool getThreadPool() {
         Context ap = getApplication();
         if (ap instanceof CropAppImpl) {
-            return ((CropAppImpl)ap).getThreadPool();
+            return ((CropAppImpl) ap).getThreadPool();
         }
 
         return null;
-    }
-
-    public IntentType getIntentType() {
-        return mIntentType;
     }
 
     private static void clearBitmapPool(BitmapPool pool) {

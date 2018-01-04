@@ -244,9 +244,6 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
             }
         });
 
-        mIntentType.mType = INTENT_CROP;
-        mIntentType.mMimeType = INTENT_FILETER_IMAGE;
-
         mCompressFormat = getIntent().getStringExtra(KEY_COMPRESS_FORMAT);
         if (mCompressFormat != null) {
             mCompressFormat.toLowerCase();
@@ -934,7 +931,7 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         mMediaItem = getMediaItemFromIntentData();
         if (mMediaItem == null) return;
 
-        boolean supportedByBitmapRegionDecoder = true;
+        boolean supportedByBitmapRegionDecoder = false;
         //TODO
         //(mMediaItem.getSupportedOperations() & MediaItem.SUPPORT_FULL_IMAGE) != 0;
         if (supportedByBitmapRegionDecoder) {
@@ -1039,7 +1036,9 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         Uri uri = getIntent().getData();
         MediaItem item = new MediaItem();
         item.filePath = uri.getPath();
-        item.setRotation(BitmapUtils.getOrientationFromPath(item.filePath));
+        int orientation = BitmapUtils.getOrientationFromPath(item.filePath);
+        item.setRotation(orientation);
+        item.setFullImageRotation(orientation);
         item.setMimeType("image/jpg");
         return item;
     }
