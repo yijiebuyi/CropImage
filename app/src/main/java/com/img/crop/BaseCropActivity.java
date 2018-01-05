@@ -10,10 +10,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
@@ -146,9 +144,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
     // mBitmap is the unrotated bitmap we pass in to mCropView for detect faces.
     // mCropView is responsible for rotating it to the way that it is viewed by users.
     private Bitmap mBitmap;
-    private BitmapTileProvider mBitmapTileProvider;
     private BitmapRegionDecoder mRegionDecoder;
-    private Bitmap mBitmapInIntent;
     private boolean mUseRegionDecoder = false;
     private BitmapScreenNail mBitmapScreenNail;
 
@@ -617,6 +613,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
 
             Bitmap cropped = getCroppedImage(rect, false);
             CropBusiness.saveMedia(jc, cropped, outputPath, null);
+            result.setData(Uri.fromFile(new File(outputPath)));
 
             return result;
         }
@@ -677,15 +674,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         mDestRect.set(dest);
 
         try {
-            if (mBitmapInIntent != null) {
-                Bitmap source = mBitmapInIntent;
-                Bitmap result = Bitmap.createBitmap(
-                        outputX, outputY, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(result);
-                canvas.drawBitmap(source, rect, dest, null);
-                return result;
-            }
-
             if (mUseRegionDecoder) {
                 int rotation = mMediaItem.getRotation();
                 CropBusiness.rotateRectangle(rect, mCropView.getImageWidth(), mCropView.getImageHeight(), 360 - rotation);

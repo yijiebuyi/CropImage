@@ -112,9 +112,9 @@ public class CropBusiness {
         }
 
         if (overWrite) {
-            return dir + "/" + "out_img" + suffix;
+            return dir + "/" + "out_img" + "." + suffix;
         } else {
-            return dir + "/" + "out_img" + System.currentTimeMillis() + suffix;
+            return dir + "/" + "out_img" + System.currentTimeMillis() + "." + suffix;
         }
     }
 
@@ -221,7 +221,8 @@ public class CropBusiness {
     public static File saveMedia(ThreadPool.JobContext jc, Bitmap cropped, String filePath, ExifData exifData) {
         // Try file-1.jpg, file-2.jpg, ... until we find a filename
         // which does not exist yet.
-        File candidate = new File(filePath);
+        File save = new File(filePath);
+        File candidate = new File(filePath + "_temp");
         String fileExtension = getExtensionName(filePath);
         if (TextUtils.isEmpty(fileExtension)) {
             fileExtension = "jpg";
@@ -252,12 +253,14 @@ public class CropBusiness {
                 } else {
                     saveBitmapToOutputStream(jc, cropped, convertExtensionToCompressFormat(fileExtension), fos);
                 }
+
+                candidate.renameTo(save);
+                candidate.delete();
             } finally {
                 fos.close();
             }
         } catch (IOException e) {
-            Log.e(TAG, "fail to save image: "
-                    + candidate.getAbsolutePath(), e);
+            Log.e(TAG, "fail to save image: " + candidate.getAbsolutePath(), e);
             candidate.delete();
             return null;
         }

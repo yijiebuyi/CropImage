@@ -131,6 +131,8 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
             intent.setClass(this, SimpleCropActivity.class);
             intent.putExtra(KEY_OUTPUT_X, mWidth);
             intent.putExtra(KEY_OUTPUT_Y, mHeight);
+            intent.putExtra(KEY_ASPECT_X, 1);
+            intent.putExtra(KEY_ASPECT_Y, 1);
             startActivityForResult(intent, CROP_IMAGE_REQUEST_CODE);
         } else {
             finishWhitData(RESULT_CANCELED, null);

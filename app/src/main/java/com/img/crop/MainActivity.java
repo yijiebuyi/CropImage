@@ -2,6 +2,8 @@ package com.img.crop;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -9,6 +11,8 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.img.crop.core.TileImageView;
+
+import java.net.URI;
 
 /*
  * Copyright (C) 2017
@@ -51,7 +55,8 @@ public class MainActivity extends Activity {
                 case 1024:
                     Uri uri = data.getData();
                     if (uri != null) {
-                        mTileImageView.setImageURI(uri);
+                        Bitmap bitmap = BitmapFactory.decodeFile(uri.getPath());
+                        mTileImageView.setImageBitmap(bitmap);
                     }
                     break;
             }
