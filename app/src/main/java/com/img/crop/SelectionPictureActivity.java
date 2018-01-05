@@ -18,6 +18,7 @@ import android.widget.ListView;
 import com.img.crop.permissiongen.PermissionFail;
 import com.img.crop.permissiongen.PermissionSuccess;
 import com.img.crop.permissiongen.internal.PermissionUtil;
+import com.img.crop.utils.CropBusiness;
 import com.img.crop.utils.FileUtil;
 
 import java.io.File;
@@ -126,11 +127,8 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
         }
 
         if (file.exists()) {
-            if (!UPLOAD_IMAGE_PATH.equals(file.getAbsolutePath())) {
-                FileUtil.copyFiles(file.getAbsolutePath(), UPLOAD_IMAGE_PATH, true);
-            }
             Intent intent = new Intent(CROP_ACTION, Uri.fromFile(file));
-            intent.setClass(this, CropImageActivity.class);
+            intent.setClass(this, SimpleCropActivity.class);
             intent.putExtra(KEY_OUTPUT_X, mWidth);
             intent.putExtra(KEY_OUTPUT_Y, mHeight);
             startActivityForResult(intent, CROP_IMAGE_REQUEST_CODE);
@@ -341,7 +339,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
                 break;
             case TAKE_PHOTO: // 拍照
                 if (resultCode == RESULT_OK) {
-                    File file = new File(UPLOAD_IMAGE_PATH);
+                    File file = new File(CropBusiness.generateCameraPicPath(this));
                     setImgPathToResult(file);
                 } else {
                     // 未拍照

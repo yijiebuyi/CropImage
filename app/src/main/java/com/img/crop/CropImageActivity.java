@@ -176,7 +176,7 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         // Initialize UI
         initUI();
 
-        mCropView = new CropView(this);
+        mCropView = new CropView(this, getGLRoot());
         getGLRoot().setContentPane(mCropView);
 
         mMainHandler = new SynchronizedHandler(getGLRoot()) {
@@ -685,7 +685,7 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
             }
 
             if (mUseRegionDecoder) {
-                int rotation = mMediaItem.getFullImageRotation();
+                int rotation = mMediaItem.getRotation();
                 rotateRectangle(rect, mCropView.getImageWidth(),
                         mCropView.getImageHeight(), 360 - rotation);
                 rotateRectangle(dest, outputX, outputY, 360 - rotation);
@@ -843,7 +843,7 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         adapter.setScreenNail(mBitmapScreenNail, width, height);
         adapter.setRegionDecoder(regionDecoder);
 
-        mCropView.setDataModel(adapter, mMediaItem.getFullImageRotation());
+        mCropView.setDataModel(adapter, mMediaItem.getRotation());
 
         if (mDoFaceDetection) {
             mCropView.detectFaces(mBitmap);
@@ -1038,7 +1038,6 @@ public class CropImageActivity extends AbstractCropActivity implements CropConst
         item.filePath = uri.getPath();
         int orientation = BitmapUtils.getOrientationFromPath(item.filePath);
         item.setRotation(orientation);
-        item.setFullImageRotation(orientation);
         item.setMimeType("image/jpg");
         return item;
     }

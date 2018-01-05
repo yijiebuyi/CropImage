@@ -13,9 +13,11 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.FragmentActivity;
 
 import com.img.crop.permissiongen.PermissionGen;
 import com.img.crop.permissiongen.internal.PermissionUtil;
+import com.img.crop.utils.CropBusiness;
 
 import java.io.File;
 
@@ -31,7 +33,7 @@ import java.io.File;
  * 修改描述：
  * 修改日期
  */
-public abstract class BaseSelectionPictureActivity extends Activity implements CropConstants {
+public abstract class BaseSelectionPictureActivity extends FragmentActivity implements CropConstants {
     protected static final int REQUEST_GALLERY_PERMISSION = 1000;
     protected static final int REQUEST_CAMERA_PERMISSION = 10001;
 
@@ -228,11 +230,7 @@ public abstract class BaseSelectionPictureActivity extends Activity implements C
      */
     protected void enterCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File outFile = new File(UPLOAD_IMAGE_PATH);
-        File parent = outFile.getParentFile();
-        if (!parent.exists()) {
-            parent.mkdirs();
-        }
+        File outFile = new File(CropBusiness.generateCameraPicPath(this));
         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outFile));
         startActivityForResult(intent, TAKE_PHOTO);
     }

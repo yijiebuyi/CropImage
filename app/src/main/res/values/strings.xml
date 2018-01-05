@@ -3,6 +3,7 @@
     <string name="details_ms">%1$02d:%2$02d</string>
     <string name="details_hms">%1$d:%2$02d:%3$02d</string>
     <string name="cancel">取消</string>
+    <string name="save">保存</string>
     <string name="save_as">另存为</string>
     <string name="if_remain_original_file">保存图片?</string>
     <string name="overwrite">覆盖</string>
@@ -24,4 +25,9 @@
     <string name="four_three_crop_aspect">4:3</string>
     <string name="sixteen_nine_crop_aspect">16:9</string>
     <string name="custom_crop_aspect">自定义</string>
+
+    <string name="save_failure">保存失败</string>
+    <string name="load_bmp_failure">图片加载失败</string>
+    <string name="sd_unavailable">SD卡不可用</string>
+    <string name="save_crop_succ">保存裁剪成功</string>
 </resources>

@@ -2,6 +2,8 @@ package com.img.crop;
 
 import android.os.Environment;
 
+import com.img.crop.utils.CropBusiness;
+
 /*
  * Copyright (C) 2017 重庆呼我出行网络科技有限公司
  * 版权所有
@@ -27,6 +29,7 @@ public interface CropConstants {
     public static final String KEY_SPOTLIGHT_Y = "spotlightY";
     public static final String KEY_OUTPUT_X = "outputX";
     public static final String KEY_OUTPUT_Y = "outputY";
+    public static final String KEY_OUTPUT_PATH = "output-path";
     public static final String KEY_OUTPUT_MAX_X = "outputMaxX";
     public static final String KEY_OUTPUT_MAX_Y = "outputMaxY";
     public static final String KEY_SCALE = "scale";
@@ -39,17 +42,9 @@ public interface CropConstants {
     public static final String KEY_CONFIRM_OVERWRITE = "confirm-overwrite";
     public static final String KEY_COMPRESS_FORMAT = "compress-format";
 
-    public static final String CROP_NEVER = "never_crop";
-    public static final String UPLOAD_COMPRESS = "upload_compress"; //上传的图片是否需要压缩
-
     public static final int CHOOSE_IMAGE = 1; // 选择图片
     public static final int TAKE_PHOTO = 2; // 拍照
     public static final int CROP_IMAGE_REQUEST_CODE = 3; // 裁剪
 
-    public static final int SELECT_PIC_REQUEST = 2000;    // 剪切图片的requestcode
     public static final String UPLOAD_IMAGE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/crop/image_upload.jpg"; // 选择图片地址
-
-    public static final String CROP_IMAGE_PATH_TAG = "cropImagePath"; // 返回图片intent
-
-    public static final String CROP_IMAGE_PATH = "/crop/crop_image"; // 剪切后的图片地址
 }

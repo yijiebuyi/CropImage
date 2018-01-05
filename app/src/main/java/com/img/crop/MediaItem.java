@@ -30,14 +30,6 @@ public class MediaItem {
         this.mimeType = mimeType;
     }
 
-    public int getFullImageRotation() {
-        return fullImageRotation;
-    }
-
-    public void setFullImageRotation(int fullImageRotation) {
-        this.fullImageRotation = fullImageRotation;
-    }
-
     public int getRotation() {
         return rotation;
     }

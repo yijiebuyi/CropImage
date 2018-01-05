@@ -25,8 +25,7 @@ public class CropUtils {
 
     public static void initialize(Context context) {
         DisplayMetrics metrics = new DisplayMetrics();
-        WindowManager wm = (WindowManager)
-                context.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         wm.getDefaultDisplay().getMetrics(metrics);
         sPixelDensity = metrics.density;
         Resources r = context.getResources();

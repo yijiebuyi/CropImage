@@ -1,5 +1,6 @@
 package com.img.crop.core;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -15,13 +16,13 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.animation.DecelerateInterpolator;
 
-import com.img.crop.AbstractCropActivity;
 import com.img.crop.CropImageActivity;
 import com.img.crop.R;
 import com.img.crop.glsrender.anim.Animation;
 import com.img.crop.glsrender.anim.AnimationTime;
 import com.img.crop.glsrender.gl11.GLCanvas;
 import com.img.crop.glsrender.gl11.GLPaint;
+import com.img.crop.glsrender.gl11.GLRoot;
 import com.img.crop.glsrender.gl11.GLView;
 import com.img.crop.glsrender.gl11.NinePatchTexture;
 import com.img.crop.utils.SynchronizedHandler;
@@ -58,7 +59,7 @@ public class CropView extends GLView {
     private static final int MOVE_RIGHT = 4;
     private static final int MOVE_BOTTOM = 8;
     private static final int MOVE_BLOCK = 16;
-    
+
     private static final int ONTOUCH_LEFT = 1;
     private static final int ONTOUCH_RIGHT = 2;
     private static final int ONTOUCH_TOP = 4;
@@ -72,7 +73,7 @@ public class CropView extends GLView {
 
     private static final int MSG_UPDATE_FACES = 1;
     private static final int CROP_FRAME_MINSIZE = 64;
-    
+
     //如小尺寸图片[如32x32以下尺寸的图片]裁剪时，有时会出现裁剪框离边缘有较小的缝隙。
     //MAX_SCALE值设置越大，缝隙越明显。[图片绘制/高亮框/裁剪素材绘制的算法不一致导致，根本原因：精度丢失]
     private static final float MAX_SCALE = 100.0f;
@@ -91,17 +92,17 @@ public class CropView extends GLView {
     private int mImageWidth = SIZE_UNKNOWN;
     private int mImageHeight = SIZE_UNKNOWN;
 
-    private AbstractCropActivity mActivity;
+    private Context mContext;
 
     private GLPaint mPaint = new GLPaint();
     private GLPaint mFacePaint = new GLPaint();
 
     private int mImageRotation;
     private int mTouchEdges = ONTOUCH_NOTHING;
-    
+
     private RectF mTempRect;
     private RectF mTempOutRect = new RectF();
-    
+
     // Multi-finger operation parameters
     private float mTempScale = 1.0f;
     private float mCurrMultiCenterX;
@@ -114,8 +115,8 @@ public class CropView extends GLView {
     private float mFirstFingerStartY;
     private float mSecondFingerStartX;
     private float mSecondFingerStartY;
-    
-   // private TextView mCropSizeText;
+
+    // private TextView mCropSizeText;
     private NinePatchTexture mCropFrame;
     private NinePatchTexture mNormalFrame;
     private NinePatchTexture mMinSizeFrame;
@@ -123,15 +124,15 @@ public class CropView extends GLView {
     private boolean mMultiPoint;
     private boolean mIsMoveEdges = false;
     private boolean mIsRotateAction = false;
-    
+
     private int mCustomizeCropWidth;
     private int mCustomizeCropHeight;
     private RectF mCurrentHighlightRect = new RectF();
-    
-    public CropView(AbstractCropActivity activity) {
-        mActivity = activity;
-        mImageView = new TileImageView(activity);
-        mScaleDetector = new ScaleGestureDetector(activity.getAndroidContext(), new ScaleListener());
+
+    public CropView(Context context, GLRoot glRoot) {
+        mContext = context;
+        mImageView = new TileImageView(context);
+        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         //mFaceDetectionView = new FaceHighlightView();
         mHighlightRectangle = new HighlightRectangle();
 
@@ -147,18 +148,18 @@ public class CropView extends GLView {
         mFacePaint.setColor(COLOR_FACE_OUTLINE);
         mFacePaint.setLineWidth(OUTLINE_WIDTH);
 
-        mMainHandler = new SynchronizedHandler(activity.getGLRoot()) {
+        mMainHandler = new SynchronizedHandler(glRoot) {
             @Override
             public void handleMessage(Message message) {
                 Utils.assertTrue(message.what == MSG_UPDATE_FACES);
                 ((DetectFaceTask) message.obj).updateFaces();
             }
         };
-        
+
         mTempRect = new RectF();
         //mCropSizeText = (TextView)((Activity)mActivity).findViewById(R.id.cropimage_res);
         //mNormalFrame = new NinePatchTexture(activity.getAndroidContext(), R.drawable.crop_frame);
-        mNormalFrame = new NinePatchTexture(activity.getAndroidContext(), R.drawable.crop_frame_big);
+        mNormalFrame = new NinePatchTexture(context, R.drawable.crop_frame_big);
         mCropFrame = mNormalFrame;
     }
 
@@ -183,7 +184,7 @@ public class CropView extends GLView {
     public float getAspectRatio() {
         return mAspectRatio;
     }
-    
+
     public void setSpotlightRatio(float ratioX, float ratioY) {
         mSpotlightRatioX = ratioX;
         mSpotlightRatioY = ratioY;
@@ -218,11 +219,16 @@ public class CropView extends GLView {
         TileImageView t = mImageView;
         int rotation = mImageRotation;
         switch (rotation) {
-            case 0: return t.setPosition(centerX, centerY, scale, 0);
-            case 90: return t.setPosition(centerY, inverseX, scale, 90);
-            case 180: return t.setPosition(inverseX, inverseY, scale, 180);
-            case 270: return t.setPosition(inverseY, centerX, scale, 270);
-            default: throw new IllegalArgumentException(String.valueOf(rotation));
+            case 0:
+                return t.setPosition(centerX, centerY, scale, 0);
+            case 90:
+                return t.setPosition(centerY, inverseX, scale, 90);
+            case 180:
+                return t.setPosition(inverseX, inverseY, scale, 180);
+            case 270:
+                return t.setPosition(inverseY, centerX, scale, 270);
+            default:
+                throw new IllegalArgumentException(String.valueOf(rotation));
         }
     }
 
@@ -238,26 +244,26 @@ public class CropView extends GLView {
                 if (mHighlightRectangle != null) {
                     mHighlightRectangle.updateFrame();
                 }
-                
+
                 invalidate();
-             }
-                setImageViewPosition(a.getCenterX(), a.getCenterY(), a.getScale());
+            }
+            setImageViewPosition(a.getCenterX(), a.getCenterY(), a.getScale());
             scale = a.getScale();
         }
-        
+
         if (scale > 2f) {
             mImageView.setChangeTextureFilter(GL11.GL_NEAREST);
         } else {
             mImageView.setChangeTextureFilter(GL11.GL_LINEAR);
         }
-        
+
         super.render(canvas);
     }
 
     @Override
     public void renderBackground(GLCanvas canvas) {
-        int bg = mActivity.getResources().getColor(R.color.crop_background);
-        canvas.clearBuffer(new float[] {Color.alpha(bg) / 255.0f, Color.red(bg) / 255.0f, Color.green(bg) / 255.0f, Color.blue(bg) / 255.0f});
+        int bg = mContext.getResources().getColor(R.color.crop_background);
+        canvas.clearBuffer(new float[]{Color.alpha(bg) / 255.0f, Color.red(bg) / 255.0f, Color.green(bg) / 255.0f, Color.blue(bg) / 255.0f});
     }
 
     public RectF getCropRectangle() {
@@ -408,24 +414,24 @@ public class CropView extends GLView {
             //mStartX = mCurrentX;
             //mStartY = mCurrentY;
             //mStartScale = mCurrentScale;
-            
+
             mStartX = mCurrMultiCenterX;
             mStartY = mCurrMultiCenterY;
             mStartScale = mCurrMultiScale;
-            
+
             calculateTarget(highlight);
             start();
         }
-        
+
         //start the animation of roll_back
-        public void startRollbackingAnimation(RectF highlight){
+        public void startRollbackingAnimation(RectF highlight) {
             mStartX = mCurrMultiCenterX;
             mStartY = mCurrMultiCenterY;
             mStartScale = mCurrMultiScale;
-            
+
             float width = getWidth();
             float height = getHeight();
-            
+
             float scale = mCurrentScale;
             float centerX = mImageWidth * (highlight.left + highlight.right) * 0.5f;
             float centerY = mImageHeight * (highlight.top + highlight.bottom) * 0.5f;
@@ -444,10 +450,10 @@ public class CropView extends GLView {
             } else {
                 centerY = mImageHeight / 2.0f;
             }
-            mCurrMultiCenterX =  mTargetX = centerX;
+            mCurrMultiCenterX = mTargetX = centerX;
             mCurrMultiCenterY = mTargetY = centerY;
             mCurrMultiScale = mTargetScale = scale;
-           
+
             updateTotalScale(mTargetScale);
             start();
         }
@@ -474,7 +480,7 @@ public class CropView extends GLView {
             float x = mCurrentX;
             float y = mCurrentY;
             float s = mCurrentScale;
-            
+
             output.set(
                     offsetX + (input.left * mImageWidth - x) * s,
                     offsetY + (input.top * mImageHeight - y) * s,
@@ -534,7 +540,7 @@ public class CropView extends GLView {
                 mTargetX = centerX;
                 mTargetY = centerY;
                 mTargetScale = scale;
-                
+
                 mCurrMultiCenterX = centerX;
                 mCurrMultiCenterY = centerY;
                 mCurrMultiScale = scale;
@@ -555,13 +561,13 @@ public class CropView extends GLView {
         private GestureDetector mGestureDetector;
 
         public HighlightRectangle() {
-            
-            mGestureDetector = new GestureDetector(mActivity.getAndroidContext(), new GestureDetector.SimpleOnGestureListener() {
-                
+
+            mGestureDetector = new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
+
                 @Override
                 public boolean onSingleTapUp(MotionEvent e) {
                     mIsMoveEdges = false;
-                    
+
                     if (mTouchEdges != ONTOUCH_NOTHING) {
                         float rectLeft = mHighlightRectangle.mHighlightRect.left;
                         float rectRight = mHighlightRectangle.mHighlightRect.right;
@@ -575,45 +581,45 @@ public class CropView extends GLView {
                         switch (mTouchEdges) {
                             case ONTOUCH_LEFT: {
                                 if (e.getX() < outRect.left) {
-                                    moveLength = -1f / (float)mImageWidth;
-                                } else if (e.getX() > outRect.left + outRect.width()){
-                                    moveLength = 1f / (float)mImageWidth;
+                                    moveLength = -1f / (float) mImageWidth;
+                                } else if (e.getX() > outRect.left + outRect.width()) {
+                                    moveLength = 1f / (float) mImageWidth;
                                 } else {
                                     return false;
                                 }
                                 rectLeft = Utils.clamp(rectLeft + moveLength, 0, rectRight - minWith);
                             }
                             break;
-                            
+
                             case ONTOUCH_RIGHT: {
                                 if (e.getX() < outRect.left) {
-                                    moveLength = -1f / (float)mImageWidth;
+                                    moveLength = -1f / (float) mImageWidth;
                                 } else if (e.getX() > outRect.left + outRect.width()) {
-                                    moveLength = 1f / (float)mImageWidth;
+                                    moveLength = 1f / (float) mImageWidth;
                                 } else {
                                     return false;
                                 }
-                                rectRight =  Utils.clamp(rectRight + moveLength, rectLeft + minWith, 1);
+                                rectRight = Utils.clamp(rectRight + moveLength, rectLeft + minWith, 1);
                             }
                             break;
-                            
+
                             case ONTOUCH_TOP: {
                                 if (e.getY() < outRect.top) {
-                                    moveLength = -1f / (float)mImageHeight;
+                                    moveLength = -1f / (float) mImageHeight;
                                 } else if (e.getY() > outRect.top + outRect.height()) {
-                                    moveLength = 1f / (float)mImageHeight;
+                                    moveLength = 1f / (float) mImageHeight;
                                 } else {
                                     return false;
                                 }
                                 rectTop = Utils.clamp(rectTop + moveLength, 0, rectBottom - minHeight);
                             }
                             break;
-                            
+
                             case ONTOUCH_BOTTOM: {
                                 if (e.getY() < outRect.top) {
-                                    moveLength = -1f / (float)mImageHeight;
+                                    moveLength = -1f / (float) mImageHeight;
                                 } else if (e.getY() > outRect.top + outRect.height()) {
-                                    moveLength = 1f / (float)mImageHeight;
+                                    moveLength = 1f / (float) mImageHeight;
                                 } else {
                                     return false;
                                 }
@@ -630,10 +636,10 @@ public class CropView extends GLView {
                         updateCropSizeText();
                         return false;
                     }
-                    
+
                     return false;
                 }
-                
+
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
                     mIsRotateAction = true;
@@ -641,35 +647,35 @@ public class CropView extends GLView {
                 }
 
                 public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                       if ((mMovingEdges & MOVE_RIGHT) == 0 && (mMovingEdges & MOVE_LEFT) == 0
-                               && (mMovingEdges & MOVE_TOP) == 0 && (mMovingEdges & MOVE_BOTTOM) == 0) {
-                           float downX = e1.getX();
-                           float downY = e1.getY();
-                           float moveX = e2.getX();
-                           float moveY = e2.getY();
-                           
-                           float yLength = Math.abs(moveY - downY);
-                           float xLength = Math.abs(moveX - downX);
-                           RectF outRect = new RectF();
-                           mAnimation.mapRect(mHighlightRectangle.mHighlightRect, outRect);
-                           if (yLength / xLength >= Math.tan(35 * Math.PI /180)) {
-                               if (Math.sqrt(yLength * yLength + xLength * xLength) >= 300f) {
-                                   if (downX < outRect.left && moveX < outRect.left) {
-                                       mTouchEdges = ONTOUCH_LEFT;
-                                   } else if (downX > outRect.left + outRect.width() && moveX > outRect.left + outRect.width()) {
-                                       mTouchEdges = ONTOUCH_RIGHT;
-                                   }
-                               }
-                           } else {
-                               if (Math.sqrt(yLength * yLength + xLength * xLength) >= 300f) {
-                                   if (downY >  outRect.top + outRect.width() && moveY > outRect.top + outRect.width()) {
-                                       mTouchEdges = ONTOUCH_BOTTOM;
-                                   } else if (downY < outRect.top && moveY < outRect.top) {
-                                       mTouchEdges = ONTOUCH_TOP;
-                                   }
-                               }
-                           }
-                       }
+                    if ((mMovingEdges & MOVE_RIGHT) == 0 && (mMovingEdges & MOVE_LEFT) == 0
+                            && (mMovingEdges & MOVE_TOP) == 0 && (mMovingEdges & MOVE_BOTTOM) == 0) {
+                        float downX = e1.getX();
+                        float downY = e1.getY();
+                        float moveX = e2.getX();
+                        float moveY = e2.getY();
+
+                        float yLength = Math.abs(moveY - downY);
+                        float xLength = Math.abs(moveX - downX);
+                        RectF outRect = new RectF();
+                        mAnimation.mapRect(mHighlightRectangle.mHighlightRect, outRect);
+                        if (yLength / xLength >= Math.tan(35 * Math.PI / 180)) {
+                            if (Math.sqrt(yLength * yLength + xLength * xLength) >= 300f) {
+                                if (downX < outRect.left && moveX < outRect.left) {
+                                    mTouchEdges = ONTOUCH_LEFT;
+                                } else if (downX > outRect.left + outRect.width() && moveX > outRect.left + outRect.width()) {
+                                    mTouchEdges = ONTOUCH_RIGHT;
+                                }
+                            }
+                        } else {
+                            if (Math.sqrt(yLength * yLength + xLength * xLength) >= 300f) {
+                                if (downY > outRect.top + outRect.width() && moveY > outRect.top + outRect.width()) {
+                                    mTouchEdges = ONTOUCH_BOTTOM;
+                                } else if (downY < outRect.top && moveY < outRect.top) {
+                                    mTouchEdges = ONTOUCH_TOP;
+                                }
+                            }
+                        }
+                    }
                     return false;
                 }
             });
@@ -706,7 +712,7 @@ public class CropView extends GLView {
             }
             return diff;
         }
-        
+
         private void moveEdges(MotionEvent event) {
             float scale = mAnimation.getScale();
             float dx = (event.getX() - mReferenceX) / scale / mImageWidth;
@@ -746,14 +752,15 @@ public class CropView extends GLView {
                 if ((mMovingEdges & MOVE_LEFT) != 0) {
                     float tempLeft = Utils.clamp(point.x, 0, right);
                     if (tempLeft != right) {
-                        diff =  mathRoundValue(tempLeft, left, mImageWidth);;
+                        diff = mathRoundValue(tempLeft, left, mImageWidth);
+                        ;
                         if (diff != 0) {
                             r.left = Utils.clamp(r.left + diff, 0, right);
                         }
                     } else {
                         r.left = tempLeft;
                     }
-                    
+
                     mTouchEdges = ONTOUCH_NOTHING;
                 }
                 if ((mMovingEdges & MOVE_TOP) != 0) {
@@ -766,7 +773,7 @@ public class CropView extends GLView {
                     } else {
                         r.top = tempTop;
                     }
-                    
+
                     mTouchEdges = ONTOUCH_NOTHING;
                 }
                 if ((mMovingEdges & MOVE_BOTTOM) != 0) {
@@ -794,7 +801,7 @@ public class CropView extends GLView {
                         float width = r.height() * targetRatio;
                         if ((mMovingEdges & MOVE_LEFT) != 0) {
                             r.left = Utils.clamp(r.right - width, 0, right);
-                        } else  if ((mMovingEdges & MOVE_RIGHT) != 0){
+                        } else if ((mMovingEdges & MOVE_RIGHT) != 0) {
                             r.right = Utils.clamp(r.left + width, left, 1f);
                         }
                     }
@@ -814,23 +821,23 @@ public class CropView extends GLView {
                         }
                     }
                 }
-                
+
                 updateFrame();
                 updateCropSizeText();
             }
             invalidate();
         }
-        
+
         public void updateFrame() {
-             RectF rect = mAnimation.mapRect(mHighlightRect, mTempRect);
-             if (rect.width() <= CROP_FRAME_MINSIZE || rect.height() <= CROP_FRAME_MINSIZE) {
+            RectF rect = mAnimation.mapRect(mHighlightRect, mTempRect);
+            if (rect.width() <= CROP_FRAME_MINSIZE || rect.height() <= CROP_FRAME_MINSIZE) {
                 if (mMinSizeFrame == null) {
-                    mMinSizeFrame = new NinePatchTexture(mActivity.getAndroidContext(), R.drawable.crop_frame_small);
+                    mMinSizeFrame = new NinePatchTexture(mContext, R.drawable.crop_frame_small);
                 }
                 mCropFrame = mMinSizeFrame;
-             } else {
+            } else {
                 mCropFrame = mNormalFrame;
-             }
+            }
         }
 
         private void setMovingEdges(MotionEvent event) {
@@ -839,10 +846,10 @@ public class CropView extends GLView {
             float y = event.getY();
 
             int moveFrameTolerance = TOUCH_TOLERANCE;
-            if (r.width() - moveFrameTolerance*2  <= moveFrameTolerance || r.height() - moveFrameTolerance*2 <= moveFrameTolerance) {
+            if (r.width() - moveFrameTolerance * 2 <= moveFrameTolerance || r.height() - moveFrameTolerance * 2 <= moveFrameTolerance) {
                 moveFrameTolerance = 0;
             }
-                
+
             if (x > r.left + moveFrameTolerance && x < r.right - moveFrameTolerance
                     && y > r.top + moveFrameTolerance && y < r.bottom - moveFrameTolerance) {
                 mMovingEdges = MOVE_BLOCK;
@@ -890,15 +897,15 @@ public class CropView extends GLView {
             // multipoint event is not allowed
             if (event.getPointerCount() > 1) {
                 mMultiPoint = true;
-                if(event.getPointerCount()==2){
+                if (event.getPointerCount() == 2) {
                     mTwoFinger = true;
                 }
             }
-            
+
             mGestureDetector.onTouchEvent(event);
             mScaleDetector.onTouchEvent(event);
-            
-            switch (event.getAction()  & MotionEvent.ACTION_MASK) {
+
+            switch (event.getAction() & MotionEvent.ACTION_MASK) {
                 case MotionEvent.ACTION_DOWN: {
                     if (!mMultiPoint) {
                         mReferenceX = event.getX();
@@ -909,7 +916,7 @@ public class CropView extends GLView {
                     return true;
                 }
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    if(mTwoFinger && event.getPointerCount() > 1){
+                    if (mTwoFinger && event.getPointerCount() > 1) {
                         mFirstFingerStartX = event.getX(0);
                         mFirstFingerStartY = event.getY(0);
                         mSecondFingerStartX = event.getX(1);
@@ -919,8 +926,8 @@ public class CropView extends GLView {
                 case MotionEvent.ACTION_MOVE:
                     if (!mMultiPoint) {
                         moveEdges(event);
-                    }else{
-                        if(mTwoFinger && event.getPointerCount() > 1){
+                    } else {
+                        if (mTwoFinger && event.getPointerCount() > 1) {
                             movePicturePosition(event);
                             invalidate();
                         }
@@ -943,7 +950,7 @@ public class CropView extends GLView {
                             float left = mHighlightRect.left * mImageWidth;
                             float integerLeft = Math.round(left);
                             float diffLeft = integerLeft - left;
-                        
+
                             float top = mHighlightRect.top * mImageHeight;
                             float integerTop = Math.round(top);
                             float diffTop = integerTop - top;
@@ -967,12 +974,12 @@ public class CropView extends GLView {
             //r.set(r.left - 1, r.top - 1, r.right + 1, r.bottom + 1);
             mCurrentHighlightRect.set(r.left, r.top, r.right, r.bottom);
             drawHighlightRectangle(canvas, r);
-            int inset = mActivity.getResources().getDimensionPixelSize(R.dimen.cropimage_crop_frame_padding);
+            int inset = mContext.getResources().getDimensionPixelSize(R.dimen.cropimage_crop_frame_padding);
             if (r.width() <= CROP_FRAME_MINSIZE || r.height() <= CROP_FRAME_MINSIZE) {
                 inset = 2;
-            } 
+            }
             mCropFrame.draw(canvas, Math.round(r.left) - inset, Math.round(r.top) - inset, Math.round(r.width()) + inset * 2, Math.round(r.height()) + inset * 2);
-            
+
             //drawCropFrame(canvas, r);
             /* float centerY = (r.top + r.bottom) / 2;
             float centerX = (r.left + r.right) / 2;
@@ -1042,14 +1049,14 @@ public class CropView extends GLView {
             }
             int offsetX = (getWidth() - Math.round(out.width())) / 2;
             int offsetY = (getHeight() - Math.round(out.height())) / 2;
-            canvas.fillRect(Math.max(0, offsetX), Math.max(0, offsetY), Math.min(Math.round(out.width()),getWidth()), Math.min(Math.round(out.height()),getHeight()), 0x50000000);
+            canvas.fillRect(Math.max(0, offsetX), Math.max(0, offsetY), Math.min(Math.round(out.width()), getWidth()), Math.min(Math.round(out.height()), getHeight()), 0x50000000);
 
             gl.glDisable(GL11.GL_STENCIL_TEST);
         }
-        
+
     }
-    
-   private class DetectFaceTask extends Thread {
+
+    private class DetectFaceTask extends Thread {
         private final FaceDetector.Face[] mFaces = new FaceDetector.Face[MAX_FACE_COUNT];
         private final Bitmap mFaceBitmap;
         private int mFaceCount;
@@ -1097,7 +1104,7 @@ public class CropView extends GLView {
                     r.right = r.left + w;
                 } else {
                     float h = r.width() / aspect;
-                    r.top =  (r.top + r.bottom - h) * 0.5f;
+                    r.top = (r.top + r.bottom - h) * 0.5f;
                     r.bottom = r.top + h;
                 }
             }
@@ -1188,15 +1195,17 @@ public class CropView extends GLView {
     public void pause() {
         mImageView.freeTextures();
     }
-    
+
     private void updateCropSizeText() {
-        ((CropImageActivity)mActivity).updateCropSize(getCropSizeString());
+        if (mContext instanceof CropImageActivity) {
+            ((CropImageActivity) mContext).updateCropSize(getCropSizeString());
+        }
     }
-    
+
     public void setFlippable(boolean flippable) {
         mFlippable = flippable;
     }
-    
+
     public String getCropSizeString() {
         RectF rect = mHighlightRectangle.mHighlightRect;
         int l = Math.round(rect.left * mImageWidth);
@@ -1205,16 +1214,17 @@ public class CropView extends GLView {
         int b = Math.round(rect.bottom * mImageHeight);
         int width = r - l;
         int height = b - t;
-        
+
         if (width < MIN_SELECTION_LENGTH)
-            width = (int)MIN_SELECTION_LENGTH;
+            width = (int) MIN_SELECTION_LENGTH;
         if (height < MIN_SELECTION_LENGTH)
-            height = (int)MIN_SELECTION_LENGTH;
+            height = (int) MIN_SELECTION_LENGTH;
         return width + " x " + height;
     }
-    
+
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         private boolean mOnScale = false;
+
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             float scale = detector.getScaleFactor();
@@ -1225,13 +1235,13 @@ public class CropView extends GLView {
             invalidate();
             return super.onScale(detector);
         }
-        
+
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
             mOnScale = false;
             return super.onScaleBegin(detector);
         }
-        
+
         @Override
         public void onScaleEnd(ScaleGestureDetector detector) {
             if (canZoomable() && mOnScale) {
@@ -1241,7 +1251,7 @@ public class CropView extends GLView {
             }
             invalidate();
             super.onScaleEnd(detector);
-         }
+        }
     }
 
 
@@ -1258,63 +1268,63 @@ public class CropView extends GLView {
 
     // update the highlight when scaling by two-fingers
     public void updateHighlightRectangle(float scale, RectF highlight) {
-            float width = getWidth();
-            float height = getHeight();
-            float minScale = Math.min(width / mImageWidth, height / mImageHeight);
-            mTempScale = Utils.clamp(scale * mTotalScale, minScale, MAX_SCALE);
-            float limitX = width * 0.5f / mTempScale;
-            float limitY = height * 0.5f / mTempScale;
-        
-            // if zoom out, update the center coordinate of picture and highlight frame
-            RectF r = mHighlightRectangle.mHighlightRect;
-            RectF tempRect = new RectF();
-        
+        float width = getWidth();
+        float height = getHeight();
+        float minScale = Math.min(width / mImageWidth, height / mImageHeight);
+        mTempScale = Utils.clamp(scale * mTotalScale, minScale, MAX_SCALE);
+        float limitX = width * 0.5f / mTempScale;
+        float limitY = height * 0.5f / mTempScale;
+
+        // if zoom out, update the center coordinate of picture and highlight frame
+        RectF r = mHighlightRectangle.mHighlightRect;
+        RectF tempRect = new RectF();
+
         if (scale < 1.0f) {
-                if (mImageWidth * mTempScale > width) {
-                    mCurrMultiCenterX = Utils.clamp(mCurrMultiCenterX, limitX, mImageWidth - limitX);
-                } else {
-                    mCurrMultiCenterX = mImageWidth / 2.0f;
-                }
-        
-                if (mImageHeight * mTempScale > height) {
-                    mCurrMultiCenterY = Utils.clamp(mCurrMultiCenterY, limitY, mImageHeight - limitY);
-                } else {
-                    mCurrMultiCenterY = mImageHeight / 2.0f;
-                }
-        
+            if (mImageWidth * mTempScale > width) {
+                mCurrMultiCenterX = Utils.clamp(mCurrMultiCenterX, limitX, mImageWidth - limitX);
+            } else {
+                mCurrMultiCenterX = mImageWidth / 2.0f;
+            }
+
+            if (mImageHeight * mTempScale > height) {
+                mCurrMultiCenterY = Utils.clamp(mCurrMultiCenterY, limitY, mImageHeight - limitY);
+            } else {
+                mCurrMultiCenterY = mImageHeight / 2.0f;
+            }
+
             // update the highlight frame
             mAnimation.mapRect(r, tempRect);
             float offsetX = getWidth() * 0.5f;
             float offsetY = getHeight() * 0.5f;
-        
+
             float x = mCurrMultiCenterX;
             float y = mCurrMultiCenterY;
             float s = mAnimation.getScale();
-        
+
             int imageTop = Math.round(height * 0.5f - mCurrMultiCenterY * mTempScale);
             int imageBottom = Math.round(height * 0.5f + (mImageHeight - mCurrMultiCenterY) * mTempScale);
             int imageLeft = Math.round(width * 0.5f - mCurrMultiCenterX * mTempScale);
             int imageRight = Math.round(width * 0.5f + (mImageWidth - mCurrMultiCenterX) * mTempScale);
-        
+
             int left = Math.round(tempRect.left);
             int top = Math.round(tempRect.top);
             int right = Math.round(tempRect.right);
             int bottom = Math.round(tempRect.bottom);
-           
+
             int oldWidth = right - left;
             int oldHeight = bottom - top;
-            
+
             if (left < imageLeft) {
                 right = right + (imageLeft - left);
                 if (right > imageRight) {
                     right = imageRight;
                 }
                 left = imageLeft;
-                if (right - left <= 0){
+                if (right - left <= 0) {
                     right = left + 1;
                 }
             }
-        
+
             if (right > imageRight) {
                 left = left - (right - imageRight);
                 if (left < imageLeft) {
@@ -1325,7 +1335,7 @@ public class CropView extends GLView {
                     left = right - 1;
                 }
             }
-        
+
             if (top < imageTop) {
                 bottom = bottom + (imageTop - top);
                 if (bottom > imageBottom) {
@@ -1334,9 +1344,9 @@ public class CropView extends GLView {
                 top = imageTop;
                 if (bottom - top <= 0) {
                     bottom = top + 1;
-                }  
+                }
             }
-        
+
             if (bottom > imageBottom) {
                 top = top - (bottom - imageBottom);
                 if (top < imageTop) {
@@ -1347,53 +1357,53 @@ public class CropView extends GLView {
                     top = bottom - 1;
                 }
             }
-        
+
             float delta = 0;
-                       
+
             boolean widthChanged = ((right - left) - oldWidth) != 0 ? true : false;
             boolean heightChanged = ((bottom - top) - oldHeight) != 0 ? true : false;
-            
+
             float le = tempRect.left;
             float to = tempRect.top;
             float ri = tempRect.right;
-            float bo= tempRect.bottom;
-            
-            if(mAspectRatio != UNSPECIFIED){
-                if(widthChanged && !heightChanged){
+            float bo = tempRect.bottom;
+
+            if (mAspectRatio != UNSPECIFIED) {
+                if (widthChanged && !heightChanged) {
                     delta = oldWidth - (ri - le);
                     delta = delta / mAspectRatio;
-                    
+
                     to = to + delta / 2.0f;
                     bo = bo - (delta - delta / 2.0f);
                 }
-                
-                if(!widthChanged && heightChanged){
+
+                if (!widthChanged && heightChanged) {
                     delta = oldHeight - (bo - to);
                     delta = delta * mAspectRatio;
-                    
+
                     le = le + delta / 2.0f;
                     ri = ri - (delta - delta / 2.0f);
                 }
-                
-                if(widthChanged && heightChanged){
+
+                if (widthChanged && heightChanged) {
                     //never be run
                 }
-                
+
             }
-            
+
             r.left = Utils.clamp(((left - offsetX) / s + x) / mImageWidth, 0, 1.0f);
             r.right = Utils.clamp(((right - offsetX) / s + x) / mImageWidth, 0, 1.0f);
             r.top = Utils.clamp(((top - offsetY) / s + y) / mImageHeight, 0, 1.0f);
             r.bottom = Utils.clamp(((bottom - offsetY) / s + y) / mImageHeight, 0, 1.0f);
-            
+
         }
-    
+
         mAnimation.mCurrentX = mCurrMultiCenterX;
         mAnimation.mCurrentY = mCurrMultiCenterY;
         mCurrMultiScale = mTempScale;
-        
+
         mAnimation.mapRect(r, tempRect);
-        updateCropSizeText(mCurrMultiScale,tempRect.width(),tempRect.height());
+        updateCropSizeText(mCurrMultiScale, tempRect.width(), tempRect.height());
 
     }
 
@@ -1405,35 +1415,35 @@ public class CropView extends GLView {
         RectF r = mHighlightRectangle.mHighlightRect;
         RectF tempRect = new RectF();
         mAnimation.mapRect(r, tempRect);
-        
+
         float offsetX = getWidth() * 0.5f;
         float offsetY = getHeight() * 0.5f;
-        
+
         float x = mAnimation.mCurrentX;
         float y = mAnimation.mCurrentY;
-        
+
         r.left = Utils.clamp(((tempRect.left - offsetX) / (scale) + x) / mImageWidth, 0, 1.0f);
         r.right = Utils.clamp(((tempRect.right - offsetX) / (scale) + x) / mImageWidth, 0, 1.0f);
         r.top = Utils.clamp(((tempRect.top - offsetY) / (scale) + y) / mImageHeight, 0, 1.0f);
         r.bottom = Utils.clamp(((tempRect.bottom - offsetY) / (scale) + y) / mImageHeight, 0, 1.0f);
-        
+
         updateCropSizeText();
     }
-    
+
     //update the position of the highlight rectangle and picture when moving by two-fingers
-    private void updatePosition(float deltaX, float deltaY){
+    private void updatePosition(float deltaX, float deltaY) {
         float currScale = mAnimation.mCurrentScale;
         RectF r = mHighlightRectangle.mHighlightRect;
         RectF tempRect = new RectF();
         mAnimation.mapRect(r, tempRect);
         float offsetX = getWidth() * 0.5f;
         float offsetY = getHeight() * 0.5f;
-        
+
         float limitX = Math.round(getWidth() * 0.5f / currScale);
         float limitY = Math.round(getHeight() * 0.5f / currScale);
         float width = getWidth();
         float height = getHeight();
-        
+
         //update the position of picture
         if (mImageWidth * currScale > width) {
             mCurrMultiCenterX = Utils.clamp(mCurrMultiCenterX - deltaX / currScale, limitX, mImageWidth - limitX);
@@ -1446,45 +1456,47 @@ public class CropView extends GLView {
         } else {
             mCurrMultiCenterY = mImageHeight / 2.0f;
         }
-         
+
         //update the highlight rectangle of picture
         r.left = Utils.clamp(((tempRect.left - offsetX) / (currScale) + mCurrMultiCenterX) / mImageWidth, 0, 1.0f);
         r.right = Utils.clamp(((tempRect.right - offsetX) / (currScale) + mCurrMultiCenterX) / mImageWidth, 0, 1.0f);
         r.top = Utils.clamp(((tempRect.top - offsetY) / (currScale) + mCurrMultiCenterY) / mImageHeight, 0, 1.0f);
         r.bottom = Utils.clamp(((tempRect.bottom - offsetY) / (currScale) + mCurrMultiCenterY) / mImageHeight, 0, 1.0f);
-        
-        updateAnimationInfo(mCurrMultiCenterX,mCurrMultiCenterY,currScale);
+
+        updateAnimationInfo(mCurrMultiCenterX, mCurrMultiCenterY, currScale);
     }
 
     private boolean canZoomable() {
         float width = getWidth();
         float height = getHeight();
-        if (mImageWidth * MAX_SCALE < (width - 1)  && mImageHeight  * MAX_SCALE < (height - 1)) {
+        if (mImageWidth * MAX_SCALE < (width - 1) && mImageHeight * MAX_SCALE < (height - 1)) {
             return false;
-        }  
+        }
         return true;
     }
 
     //update the text of crop_size when scaling by two-fingers
-    private void updateCropSizeText(float scale,float rectWidth,float rectHeight) {
+    private void updateCropSizeText(float scale, float rectWidth, float rectHeight) {
         int width = Math.round(rectWidth / scale);
         int height = Math.round(rectHeight / scale);
         if (width < MIN_SELECTION_LENGTH)
             width = (int) MIN_SELECTION_LENGTH;
         if (height < MIN_SELECTION_LENGTH)
             height = (int) MIN_SELECTION_LENGTH;
-        ((CropImageActivity) mActivity).updateCropSize(width + " x " + height);
+        if (mContext instanceof CropImageActivity) {
+            ((CropImageActivity) mContext).updateCropSize(width + " x " + height);
+        }
     }
-    
+
     // move the position of picture by two-fingers
-    private void movePicturePosition(MotionEvent event){
+    private void movePicturePosition(MotionEvent event) {
         float firDeltaX = event.getX(0) - mFirstFingerStartX;
         float firDeltaY = event.getY(0) - mFirstFingerStartY;
         float secDeltaX = event.getX(1) - mSecondFingerStartX;
         float secDeltaY = event.getY(1) - mSecondFingerStartY;
         float deltaX = (firDeltaX + secDeltaX) / 2.0f;
         float deltaY = (firDeltaY + secDeltaY) / 2.0f;
-        updatePosition(deltaX,deltaY);
+        updatePosition(deltaX, deltaY);
         mFirstFingerStartX = event.getX(0);
         mFirstFingerStartY = event.getY(0);
         mSecondFingerStartX = event.getX(1);
@@ -1498,48 +1510,48 @@ public class CropView extends GLView {
     public int getmImageHeight() {
         return mImageHeight;
     }
-    
-    public void setCustomizeCropSize(int width,int height){
+
+    public void setCustomizeCropSize(int width, int height) {
         mCustomizeCropWidth = width;
         mCustomizeCropHeight = height;
         //calculate the new highlight
-        float ratio = (float)width / height;
+        float ratio = (float) width / height;
         mAspectRatio = ratio;
         if (mAspectRatio != UNSPECIFIED) {
-            float rectFW = (float)width / mImageWidth;
-            float rectFH = (float)height / mImageHeight;
-            
+            float rectFW = (float) width / mImageWidth;
+            float rectFH = (float) height / mImageHeight;
+
             float srcCenterX = mHighlightRectangle.mHighlightRect.centerX();
             float srcCenterY = mHighlightRectangle.mHighlightRect.centerY();
             RectF srcRect = mHighlightRectangle.mHighlightRect;
-          
+
             float newCenterX = srcCenterX;
             float newCenterY = srcCenterY;
-            
+
             //compute the center of the highlight
-            if(rectFW / 2.0f > srcCenterX){
+            if (rectFW / 2.0f > srcCenterX) {
                 newCenterX = rectFW / 2.0f;
             }
-            if(rectFW / 2.0f > 1.0f - srcCenterX){
+            if (rectFW / 2.0f > 1.0f - srcCenterX) {
                 newCenterX = 1.0f - rectFW / 2.0f;
             }
-            
-            if(rectFH / 2.0f > srcCenterY){
+
+            if (rectFH / 2.0f > srcCenterY) {
                 newCenterY = rectFH / 2.0f;
             }
-            if(rectFH / 2.0f > 1.0f - srcCenterY){
+            if (rectFH / 2.0f > 1.0f - srcCenterY) {
                 newCenterY = 1.0f - rectFH / 2.0f;
             }
-            
-            srcRect.set(newCenterX - rectFW / 2.0f,newCenterY - rectFH / 2.0f, 
+
+            srcRect.set(newCenterX - rectFW / 2.0f, newCenterY - rectFH / 2.0f,
                     newCenterX + rectFW / 2.0f, newCenterY + rectFH / 2.0f);
             mHighlightRectangle.updateFrame();
             updateCropSizeText();
             mAnimation.startParkingAnimation(srcRect);
         }
     }
-    
-    
+
+
     public void rotateCropFrame() {
         /*if (mAspectRatio != 1) {
             RectF highLightRect = mHighlightRectangle.mHighlightRect;
@@ -1567,24 +1579,24 @@ public class CropView extends GLView {
                     highLightRect.offset(centerX - highLightRect.centerX(), centerY - highLightRect.centerY());
                 }
                 updateCropSizeText(); 
-            }*/ 
-        
+            }*/
+
         RectF highLightRect = mHighlightRectangle.mHighlightRect;
         float centerX = highLightRect.centerX();
         float centerY = highLightRect.centerY();
-        
+
         float heightBy2 = (highLightRect.width() * mImageWidth) / (mImageHeight * 2f);
         float widthBy2 = (highLightRect.height() * mImageHeight) / (mImageWidth * 2f);
-        
+
         float l, r, t, b;
         l = centerX - widthBy2;
         r = centerX + widthBy2;
         t = centerY - heightBy2;
         b = centerY + heightBy2;
-        
+
         float rotatedCenterX = centerX;
         float rotatedCenterY = centerY;
-        
+
         if (r - l > 1.0f) {
             l = 0.0f;
             r = 1.0f;
@@ -1593,14 +1605,14 @@ public class CropView extends GLView {
             if (r > 1.0f) {
                 //move left
                 rotatedCenterX -= r - 1.0f;
-            } 
-            
+            }
+
             if (l < 0.0f) {
                 //move right
                 rotatedCenterX -= l;
             }
         }
-        
+
         if (b - t > 1.0f) {
             t = 0.0f;
             b = 1.0f;
@@ -1610,30 +1622,30 @@ public class CropView extends GLView {
                 //move up
                 rotatedCenterY -= b - 1.0f;
             }
-            
+
             if (t < 0.0f) {
                 //move down
                 rotatedCenterY -= t;
             }
         }
-        
+
         l = rotatedCenterX - (r - l) / 2.0f;
         r = rotatedCenterX + (r - l) / 2.0f;
         t = rotatedCenterY - (b - t) / 2.0f;
         b = rotatedCenterY + (b - t) / 2.0f;
         highLightRect.set(l, t, r, b);
-        updateCropSizeText(); 
-        
+        updateCropSizeText();
+
         invalidate();
     }
-    
+
     public RectF mapHighlightRectOnScaling(RectF output) {
         float offsetX = getWidth() * 0.5f;
         float offsetY = getHeight() * 0.5f;
         float x = mCurrMultiCenterX;
         float y = mCurrMultiCenterY;
         float s = mCurrMultiScale;
-        
+
         output.set(
                 offsetX + (-x) * s,
                 offsetY + (-y) * s,
@@ -1641,5 +1653,5 @@ public class CropView extends GLView {
                 offsetY + (mImageHeight - y) * s);
         return output;
     }
-        
- }
+
+}

@@ -151,12 +151,14 @@ public class TileImageView extends GLView {
     }
 
     public TileImageView(Context context) {
+        //TODO
         Context appContext = context.getApplicationContext();
         if (appContext instanceof CropAppImpl) {
             mThreadPool = ((CropAppImpl) appContext).getThreadPool();
         } else {
             mThreadPool = new ThreadPool();
         }
+
         mTileDecoder = mThreadPool.submit(new TileDecoder());
         if (TILE_SIZE == 0) {
             if (CropUtils.isHighResolution(context)) {
