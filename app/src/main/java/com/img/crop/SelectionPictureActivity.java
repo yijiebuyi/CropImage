@@ -56,6 +56,8 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
     private Activity mContext;
     private Handler mHandler;
 
+    private int mCropMode;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +68,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
             mHeight = intent.getIntExtra(KEY_OUTPUT_Y, 300);
             mSelectionPicAction = intent.getIntExtra(KEY_SELECTION_PIC_ACTION, 0);
             mNeedCrop = intent.getBooleanExtra(NEED_CROP, false);
+            mCropMode = intent.getIntExtra(CROP_MODE, MODE_SIMPLE_CROP);
         }
 
         showCropImageDialog();
@@ -339,8 +342,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
 
         if (file.exists()) {
             Intent intent = new Intent(CROP_ACTION, Uri.fromFile(file));
-            boolean isSimpleCrop = false;
-            if (isSimpleCrop) {
+            if (mCropMode == MODE_SIMPLE_CROP) {
                 intent.setClass(this, SimpleCropActivity.class);
                 intent.putExtra(KEY_OUTPUT_X, mWidth);
                 intent.putExtra(KEY_OUTPUT_Y, mHeight);

@@ -20,7 +20,10 @@ public interface CropConstants {
      * 选择图片后是否需要对图片进行裁剪
      */
     public static final String NEED_CROP = "need-crop";
-
+    /**
+     * 裁剪模式
+     */
+    public static final String CROP_MODE = "crop-mode";
     /**
      * 选择图片的动作
      */
@@ -87,4 +90,8 @@ public interface CropConstants {
     public static final int CHOOSE_IMAGE = 1; // 选择图片
     public static final int TAKE_PHOTO = 2; // 拍照
     public static final int CROP_IMAGE_REQUEST_CODE = 3; // 裁剪
+
+
+    public static final int MODE_SIMPLE_CROP = 1;
+    public static final int MODE_ENHANCE_CROP = 2;
 }

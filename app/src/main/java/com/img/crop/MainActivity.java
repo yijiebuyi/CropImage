@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.img.crop.core.TileImageView;
 
@@ -27,21 +29,46 @@ import java.net.URI;
  * 修改日期
  */
 public class MainActivity extends Activity {
-    ImageView mTileImageView;
+    ImageView mImageView;
+    RadioGroup mCropModeBtn;
+    RadioButton mSimpleCropBtn;
+    RadioButton mEnhanceCropBtn;
+
+    int mCropMode = CropConstants.MODE_SIMPLE_CROP;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        mTileImageView = (ImageView) findViewById(R.id.img_view);
+        mImageView = (ImageView) findViewById(R.id.img_view);
+        mCropModeBtn = (RadioGroup) findViewById(R.id.crop_mode);
+        mSimpleCropBtn = (RadioButton) findViewById(R.id.simple_crop);
+        mEnhanceCropBtn = (RadioButton) findViewById(R.id.enhance_crop);
+
+        mSimpleCropBtn.setChecked(true);
 
         findViewById(R.id.select_pic).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(MainActivity.this, SelectionPictureActivity.class);
                 i.putExtra(CropConstants.NEED_CROP, true);
+                i.putExtra(CropConstants.CROP_MODE, mCropMode);
                 startActivityForResult(i, 1024);
+            }
+        });
+
+        mCropModeBtn.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.simple_crop:
+                        mCropMode = CropConstants.MODE_SIMPLE_CROP;
+                        break;
+                    case R.id.enhance_crop:
+                        mCropMode = CropConstants.MODE_ENHANCE_CROP;
+                        break;
+                }
             }
         });
     }
@@ -56,7 +83,7 @@ public class MainActivity extends Activity {
                     Uri uri = data.getData();
                     if (uri != null) {
                         Bitmap bitmap = BitmapFactory.decodeFile(uri.getPath());
-                        mTileImageView.setImageBitmap(bitmap);
+                        mImageView.setImageBitmap(bitmap);
                     }
                     break;
             }

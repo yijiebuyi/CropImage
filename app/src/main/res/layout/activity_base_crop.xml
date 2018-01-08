@@ -10,6 +10,25 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
+    <!--<FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_above="@+id/crop_view_action"
+        android:background="@color/crop_background">
+
+        <com.img.crop.glsrender.gl11.GLRootView
+            android:id="@+id/gl_root_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <View
+            android:id="@+id/gl_root_cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/crop_background" />
+    </FrameLayout>-->
+
     <com.img.crop.glsrender.gl11.GLRootView
         android:id="@+id/gl_root_view"
         android:layout_width="match_parent"

@@ -232,7 +232,7 @@ public class GLRootView extends GLSurfaceView implements
             h = tmp;
         }
         /*
-		 * Log.i(TAG, "layout content pane " + w + "x" + h + " (compensation " +
+         * Log.i(TAG, "layout content pane " + w + "x" + h + " (compensation " +
 		 * mCompensation + ")");
 		 */
         if (mContentView != null && w != 0 && h != 0) {
@@ -333,18 +333,20 @@ public class GLRootView extends GLSurfaceView implements
         // We put a black cover View in front of the SurfaceView and hide it
         // after the first draw. This prevents the SurfaceView being transparent
         // before the first draw.
-        if (mFirstDraw) {
+        //TODO
+        /*if (mFirstDraw) {
             mFirstDraw = false;
             post(new Runnable() {
                 @Override
                 public void run() {
                     View root = getRootView();
                     View cover = root.findViewById(R.id.gl_root_cover);
-                    if (cover != null)
+                    if (cover != null) {
                         cover.setVisibility(GONE);
+                    }
                 }
             });
-        }
+        }*/
 
         if (DEBUG_PROFILE_SLOW_ONLY) {
             long t = System.nanoTime();

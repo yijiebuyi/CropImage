@@ -4,16 +4,46 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/select_pic"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:background="#AAAAAA"
-        android:gravity="center"
-        android:padding="15dp"
-        android:text="选择图片"
-        android:textColor="#ffffff" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/select_pic"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1"
+            android:background="#AAAAAA"
+            android:gravity="center"
+            android:padding="15dp"
+            android:text="选择图片"
+            android:textColor="#ffffff" />
+
+
+        <RadioGroup
+            android:id="@+id/crop_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <RadioButton
+                android:id="@+id/simple_crop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="简单裁剪" />
+
+            <RadioButton
+                android:id="@+id/enhance_crop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="增强裁剪" />
+        </RadioGroup>
+    </LinearLayout>
+
 
     <ImageView
         android:id="@+id/img_view"
