@@ -3,7 +3,6 @@
     package="com.img.crop">
 
     <application
-        android:name=".CropAppImpl"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -20,16 +19,16 @@
         </activity>
 
         <activity
-            android:name=".CropImageActivity"
-            android:screenOrientation="portrait" />
-
-        <activity
             android:name=".SelectionPictureActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Transparent" />
 
         <activity
             android:name=".SimpleCropActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".EnhanceCropActivity"
             android:screenOrientation="portrait" />
     </application>
 

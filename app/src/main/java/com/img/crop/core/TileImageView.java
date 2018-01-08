@@ -10,10 +10,8 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.LongSparseArray;
 
-import com.img.crop.CropAppImpl;
-import com.img.crop.CropContext;
 import com.img.crop.utils.ApiHelper;
-import com.img.crop.utils.CropUtils;
+import com.img.crop.utils.CropBusiness;
 import com.img.crop.utils.DecodeUtils;
 import com.img.crop.glsrender.gl11.GLCanvas;
 import com.img.crop.glsrender.gl11.GLRoot;
@@ -150,18 +148,11 @@ public class TileImageView extends GLView {
                               int borderSize, TileBitmapPool pool);
     }
 
-    public TileImageView(Context context) {
-        //TODO
-        Context appContext = context.getApplicationContext();
-        if (appContext instanceof CropAppImpl) {
-            mThreadPool = ((CropAppImpl) appContext).getThreadPool();
-        } else {
-            mThreadPool = new ThreadPool();
-        }
-
+    public TileImageView(Context context, ThreadPool threadPool) {
+        mThreadPool = threadPool;
         mTileDecoder = mThreadPool.submit(new TileDecoder());
         if (TILE_SIZE == 0) {
-            if (CropUtils.isHighResolution(context)) {
+            if (CropBusiness.isHighResolution(context)) {
                 TILE_SIZE = 510;
             } else {
                 TILE_SIZE = 254;

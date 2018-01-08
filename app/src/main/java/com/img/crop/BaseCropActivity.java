@@ -32,7 +32,6 @@ import com.img.crop.thdpool.FutureListener;
 import com.img.crop.thdpool.ThreadPool;
 import com.img.crop.utils.BitmapUtils;
 import com.img.crop.utils.CropBusiness;
-import com.img.crop.utils.CropUtils;
 import com.img.crop.utils.LocalImageRequest;
 import com.img.crop.utils.SynchronizedHandler;
 import com.img.crop.utils.Utils;
@@ -110,6 +109,8 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
 
     private static final int BACKUP_PIXEL_COUNT = 480000; // around 800x600
 
+    private static final String KEY_STATE = "state";
+
     //==========================View / Container=================================
     /**
      * 顶部容器
@@ -124,9 +125,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
      */
     protected RelativeLayout mBottomContainer;
 
-    private static final String KEY_STATE = "state";
-
-    private CropView mCropView;
+    protected CropView mCropView;
 
     private String mCompressFormat = null;
 
@@ -236,7 +235,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
                 saveTask.waitDone();
                 dismissLoadingProgressDialog();
             }
-            CropUtils.clearInput(this);
+            CropBusiness.clearInput(this);
             mGLRootView.onPause();
         } finally {
             mGLRootView.unlockRenderThread();
@@ -299,6 +298,10 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         //implement by subClass
     }
 
+    protected void onViewsCreated() {
+
+    }
+
     /**
      * 初始化view
      */
@@ -323,14 +326,16 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         initContainerViews(mTopContainer, mBottomContainer);
 
         //add crop to gl root view
-        mCropView = new CropView(this, mGLRootView);
+        mCropView = new CropView(this);
         mGLRootView.setContentPane(mCropView);
+
+        onViewsCreated();
     }
 
     /**
      * 初始化数据
      */
-    private void initData() {
+    protected void initData() {
         setCompressFormat();
         setCropParameters();
 
@@ -363,7 +368,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         if (aspectX != 0 && aspectY != 0) {
             mFlippable = false;
             mCropView.setAspectRatio((float) aspectX / aspectY);
-            mCropView.setFlippable(mFlippable);
             mCurrentAspect = getAspect();
         } else {
             mFlippable = true;
@@ -612,7 +616,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
             }
 
             Bitmap cropped = getCroppedImage(rect, false);
-            CropBusiness.saveMedia(jc, cropped, outputPath, null);
+            CropBusiness.saveMedia(jc, cropped, outputPath);
             result.setData(Uri.fromFile(new File(outputPath)));
 
             return result;
@@ -653,8 +657,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         if (extras == null || extras.getBoolean(KEY_SCALE, true)) {
             scaleX = (float) outputX / rect.width();
             scaleY = (float) outputY / rect.height();
-            if (extras == null || !extras.getBoolean(
-                    KEY_SCALE_UP_IF_NEEDED, false)) {
+            if (extras != null && !extras.getBoolean(KEY_SCALE_UP_IF_NEEDED, false)) {
                 if (scaleX > 1f) scaleX = 1;
                 if (scaleY > 1f) scaleY = 1;
             }

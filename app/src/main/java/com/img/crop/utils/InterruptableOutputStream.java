@@ -1,12 +1,22 @@
 package com.img.crop.utils;
 
 
-import com.img.crop.utils.Utils;
-
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
+/*
+ * Copyright (C) 2017
+ * 版权所有
+ *
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2018/1/5
+ *
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
 public class InterruptableOutputStream extends OutputStream {
 
     private static final int MAX_WRITE_BYTES = 4096;

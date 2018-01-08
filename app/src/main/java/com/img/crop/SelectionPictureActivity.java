@@ -19,7 +19,6 @@ import com.img.crop.permissiongen.PermissionFail;
 import com.img.crop.permissiongen.PermissionSuccess;
 import com.img.crop.permissiongen.internal.PermissionUtil;
 import com.img.crop.utils.CropBusiness;
-import com.img.crop.utils.FileUtil;
 
 import java.io.File;
 import java.net.URI;
@@ -51,7 +50,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
     private int mWidth = 300;
     private int mHeight = 300;
 
-    private int mExtraAction;
+    private int mSelectionPicAction;
     private boolean mNeedCrop;
     private BottomSheet mBottomSheet;
     private Activity mContext;
@@ -65,7 +64,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
         if (intent != null) {
             mWidth = intent.getIntExtra(KEY_OUTPUT_X, 300);
             mHeight = intent.getIntExtra(KEY_OUTPUT_Y, 300);
-            mExtraAction = intent.getIntExtra(KEY_EXTRA_ACTION, 0);
+            mSelectionPicAction = intent.getIntExtra(KEY_SELECTION_PIC_ACTION, 0);
             mNeedCrop = intent.getBooleanExtra(NEED_CROP, false);
         }
 
@@ -80,7 +79,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
         mBottomSheet.setTitleVisibility(View.GONE);
 
         ListView lv = new ListView(this);
-        ActionAdapter adapter = new ActionAdapter(this, getActionsTxt(mExtraAction));
+        ActionAdapter adapter = new ActionAdapter(this, getActionsTxt(mSelectionPicAction));
         lv.setAdapter(adapter);
         lv.setDivider(new ColorDrawable(getResources().getColor(R.color.hor_divide_line)));
         lv.setDividerHeight(1);
@@ -114,51 +113,6 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
     }
 
     /**
-     * 图选择成功后，如果不需要图片，直接返回，否则打开裁剪图片页面
-     *
-     * @param file
-     */
-    private void setImgPathToResult(File file) {
-        if (!mNeedCrop) {
-            Intent intent = new Intent();
-            intent.setData(Uri.fromFile(file));
-            finishWhitData(RESULT_OK, intent);
-            return;
-        }
-
-        if (file.exists()) {
-            Intent intent = new Intent(CROP_ACTION, Uri.fromFile(file));
-            intent.setClass(this, SimpleCropActivity.class);
-            intent.putExtra(KEY_OUTPUT_X, mWidth);
-            intent.putExtra(KEY_OUTPUT_Y, mHeight);
-            intent.putExtra(KEY_ASPECT_X, 1);
-            intent.putExtra(KEY_ASPECT_Y, 1);
-            startActivityForResult(intent, CROP_IMAGE_REQUEST_CODE);
-        } else {
-            finishWhitData(RESULT_CANCELED, null);
-        }
-    }
-
-    /**
-     * 失败
-     */
-    public void setFailure() {
-        setResult(RESULT_CANCELED);
-        dismissDialog();
-        //finishWhitNoAnim();
-
-        if (mHandler == null) {
-            mHandler = new Handler();
-        }
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finishWhitData(RESULT_CANCELED, null);
-            }
-        }, 330);
-    }
-
-    /**
      * 关闭对话框
      */
     private void dismissDialog() {
@@ -178,7 +132,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        int eac = mExtraAction;
+        int eac = mSelectionPicAction;
         if ((eac & NEED_COVER) != 0 && (eac & NEED_LOOK) != 0 && (eac & RESULT_DELETE) != 0) {
             //contain preview, delete, set cover
             switch (position) {
@@ -280,6 +234,16 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
+    }
+
     @Keep
     @PermissionSuccess(requestCode = REQUEST_GALLERY_PERMISSION)
     public void getGallerySuccess() {
@@ -360,14 +324,58 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        if (mHandler != null) {
-            mHandler.removeCallbacksAndMessages(null);
-            mHandler = null;
+    /**
+     * 图选择成功后，如果不需要图片，直接返回，否则打开裁剪图片页面
+     *
+     * @param file
+     */
+    private void setImgPathToResult(File file) {
+        if (!mNeedCrop) {
+            Intent intent = new Intent();
+            intent.setData(Uri.fromFile(file));
+            finishWhitData(RESULT_OK, intent);
+            return;
         }
+
+        if (file.exists()) {
+            Intent intent = new Intent(CROP_ACTION, Uri.fromFile(file));
+            boolean isSimpleCrop = false;
+            if (isSimpleCrop) {
+                intent.setClass(this, SimpleCropActivity.class);
+                intent.putExtra(KEY_OUTPUT_X, mWidth);
+                intent.putExtra(KEY_OUTPUT_Y, mHeight);
+                //intent.putExtra(KEY_OUTPUT_MAX_X, 1000);
+                //intent.putExtra(KEY_OUTPUT_MAX_Y, 1000);
+                intent.putExtra(KEY_ASPECT_X, 1);
+                intent.putExtra(KEY_ASPECT_Y, 1);
+                intent.putExtra(CropConstants.KEY_SCALE_UP_IF_NEEDED, true);
+                startActivityForResult(intent, CROP_IMAGE_REQUEST_CODE);
+            } else {
+                intent.setClass(this, EnhanceCropActivity.class);
+                startActivityForResult(intent, CROP_IMAGE_REQUEST_CODE);
+            }
+        } else {
+            finishWhitData(RESULT_CANCELED, null);
+        }
+    }
+
+    /**
+     * 失败
+     */
+    public void setFailure() {
+        setResult(RESULT_CANCELED);
+        dismissDialog();
+        //finishWhitNoAnim();
+
+        if (mHandler == null) {
+            mHandler = new Handler();
+        }
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                finishWhitData(RESULT_CANCELED, null);
+            }
+        }, 330);
     }
 
     private void finishWhitData(int resultCode, Intent data) {

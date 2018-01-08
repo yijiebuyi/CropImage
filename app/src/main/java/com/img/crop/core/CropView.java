@@ -1,22 +1,15 @@
 package com.img.crop.core;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.media.FaceDetector;
-import android.os.Handler;
-import android.os.Message;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.animation.DecelerateInterpolator;
 
-import com.img.crop.CropImageActivity;
+import com.img.crop.BaseCropActivity;
 import com.img.crop.R;
 import com.img.crop.glsrender.anim.Animation;
 import com.img.crop.glsrender.anim.AnimationTime;
@@ -25,7 +18,7 @@ import com.img.crop.glsrender.gl11.GLPaint;
 import com.img.crop.glsrender.gl11.GLRoot;
 import com.img.crop.glsrender.gl11.GLView;
 import com.img.crop.glsrender.gl11.NinePatchTexture;
-import com.img.crop.utils.SynchronizedHandler;
+import com.img.crop.thdpool.ThreadPool;
 import com.img.crop.utils.Utils;
 
 import java.util.ArrayList;
@@ -38,7 +31,6 @@ public class CropView extends GLView {
     private static final int FACE_PIXEL_COUNT = 120000; // around 400x300
 
     private static final int COLOR_OUTLINE = 0xFF008AFF;
-    private static final int COLOR_FACE_OUTLINE = 0xFF000000;
 
     private static final float OUTLINE_WIDTH = 3f;
 
@@ -48,9 +40,6 @@ public class CropView extends GLView {
     private static final float MIN_TOUCHMODE_SIZE = 16f;
     private static final float MIN_SELECTION_LENGTH = 1f;
     public static final float UNSPECIFIED = -1f;
-
-    private static final int MAX_FACE_COUNT = 3;
-    private static final float FACE_EYE_RATIO = 2f;
 
     private static final int ANIMATION_DURATION = 1250;
 
@@ -70,9 +59,7 @@ public class CropView extends GLView {
     private static final float MIN_SELECTION_RATIO = 0.4f;
     private static final float SELECTION_RATIO = 0.60f;
     private static final int ANIMATION_TRIGGER = 64;
-
-    private static final int MSG_UPDATE_FACES = 1;
-    private static final int CROP_FRAME_MINSIZE = 64;
+    private static final int CROP_FRAME_MIN_SIZE = 64;
 
     //如小尺寸图片[如32x32以下尺寸的图片]裁剪时，有时会出现裁剪框离边缘有较小的缝隙。
     //MAX_SCALE值设置越大，缝隙越明显。[图片绘制/高亮框/裁剪素材绘制的算法不一致导致，根本原因：精度丢失]
@@ -82,9 +69,6 @@ public class CropView extends GLView {
     private float mSpotlightRatioX = 0;
     private float mSpotlightRatioY = 0;
 
-    private Handler mMainHandler;
-
-    private FaceHighlightView mFaceDetectionView;
     private HighlightRectangle mHighlightRectangle;
     private TileImageView mImageView;
     private AnimationController mAnimation = new AnimationController();
@@ -95,7 +79,6 @@ public class CropView extends GLView {
     private Context mContext;
 
     private GLPaint mPaint = new GLPaint();
-    private GLPaint mFacePaint = new GLPaint();
 
     private int mImageRotation;
     private int mTouchEdges = ONTOUCH_NOTHING;
@@ -109,18 +92,17 @@ public class CropView extends GLView {
     private float mCurrMultiCenterY;
     private float mCurrMultiScale = 1.0f;
     private float mTotalScale = 1.0f;
-    private ScaleGestureDetector mScaleDetector;
     private boolean mTwoFinger = false;
     private float mFirstFingerStartX;
     private float mFirstFingerStartY;
     private float mSecondFingerStartX;
     private float mSecondFingerStartY;
+    private ScaleGestureDetector mScaleDetector;
 
     // private TextView mCropSizeText;
     private NinePatchTexture mCropFrame;
     private NinePatchTexture mNormalFrame;
     private NinePatchTexture mMinSizeFrame;
-    private boolean mFlippable = true;
     private boolean mMultiPoint;
     private boolean mIsMoveEdges = false;
     private boolean mIsRotateAction = false;
@@ -129,15 +111,15 @@ public class CropView extends GLView {
     private int mCustomizeCropHeight;
     private RectF mCurrentHighlightRect = new RectF();
 
-    public CropView(Context context, GLRoot glRoot) {
+    private OnCropSizeChangeListener mOnCropSizeChangeListener;
+
+    public CropView(Context context) {
         mContext = context;
-        mImageView = new TileImageView(context);
+        mImageView = buildTileImageView(context);
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        //mFaceDetectionView = new FaceHighlightView();
         mHighlightRectangle = new HighlightRectangle();
 
         addComponent(mImageView);
-        //addComponent(mFaceDetectionView);
         addComponent(mHighlightRectangle);
 
         mHighlightRectangle.setVisibility(GLView.INVISIBLE);
@@ -145,22 +127,25 @@ public class CropView extends GLView {
         mPaint.setColor(COLOR_OUTLINE);
         mPaint.setLineWidth(OUTLINE_WIDTH);
 
-        mFacePaint.setColor(COLOR_FACE_OUTLINE);
-        mFacePaint.setLineWidth(OUTLINE_WIDTH);
-
-        mMainHandler = new SynchronizedHandler(glRoot) {
-            @Override
-            public void handleMessage(Message message) {
-                Utils.assertTrue(message.what == MSG_UPDATE_FACES);
-                ((DetectFaceTask) message.obj).updateFaces();
-            }
-        };
-
         mTempRect = new RectF();
         //mCropSizeText = (TextView)((Activity)mActivity).findViewById(R.id.cropimage_res);
         //mNormalFrame = new NinePatchTexture(activity.getAndroidContext(), R.drawable.crop_frame);
         mNormalFrame = new NinePatchTexture(context, R.drawable.crop_frame_big);
         mCropFrame = mNormalFrame;
+    }
+
+    private TileImageView buildTileImageView(Context context) {
+        ThreadPool threadPool = null;
+        if (context instanceof BaseCropActivity) {
+            threadPool = ((BaseCropActivity) context).getThreadPool();
+        } else {
+            threadPool = new ThreadPool();
+        }
+        return new TileImageView(context, threadPool);
+    }
+
+    public void setOnCropSizeChangeListener(OnCropSizeChangeListener listener) {
+        mOnCropSizeChangeListener = listener;
     }
 
     public void setAspectRatio(float ratio) {
@@ -206,11 +191,6 @@ public class CropView extends GLView {
                         mHighlightRectangle.mHighlightRect);
             }
         }
-
-        /*CropBottomBar bottomBar = ((CropImageActivity)mActivity).getBottomBar();
-        if (bottomBar != null) {
-            bottomBar.layout(0, b - CropUtils.CROP_BOTTOMBAR_HEIGHT, r, b);
-        }*/
     }
 
     private boolean setImageViewPosition(float centerX, float centerY, float scale) {
@@ -294,7 +274,6 @@ public class CropView extends GLView {
         }
 
         private void renderFace(GLCanvas canvas, RectF face, boolean pressed) {
-            //TODO
             GL11 gl = canvas.getGLInstance();
             if (pressed) {
                 gl.glEnable(GL11.GL_STENCIL_TEST);
@@ -305,7 +284,6 @@ public class CropView extends GLView {
 
             RectF r = mAnimation.mapRect(face, mRect);
             canvas.fillRect(r.left, r.top, r.width(), r.height(), Color.TRANSPARENT);
-            // canvas.drawRect(r.left, r.top, r.width(), r.height(), mFacePaint);
 
             if (pressed) {
                 gl.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
@@ -319,7 +297,6 @@ public class CropView extends GLView {
                 renderFace(canvas, faces.get(i), i == mPressedFaceIndex);
             }
 
-            //TODO
             GL11 gl = canvas.getGLInstance();
             if (mPressedFaceIndex != INDEX_NONE) {
                 gl.glStencilFunc(GL11.GL_NOTEQUAL, 1, 1);
@@ -830,7 +807,7 @@ public class CropView extends GLView {
 
         public void updateFrame() {
             RectF rect = mAnimation.mapRect(mHighlightRect, mTempRect);
-            if (rect.width() <= CROP_FRAME_MINSIZE || rect.height() <= CROP_FRAME_MINSIZE) {
+            if (rect.width() <= CROP_FRAME_MIN_SIZE || rect.height() <= CROP_FRAME_MIN_SIZE) {
                 if (mMinSizeFrame == null) {
                     mMinSizeFrame = new NinePatchTexture(mContext, R.drawable.crop_frame_small);
                 }
@@ -975,39 +952,13 @@ public class CropView extends GLView {
             mCurrentHighlightRect.set(r.left, r.top, r.right, r.bottom);
             drawHighlightRectangle(canvas, r);
             int inset = mContext.getResources().getDimensionPixelSize(R.dimen.cropimage_crop_frame_padding);
-            if (r.width() <= CROP_FRAME_MINSIZE || r.height() <= CROP_FRAME_MINSIZE) {
+            if (r.width() <= CROP_FRAME_MIN_SIZE || r.height() <= CROP_FRAME_MIN_SIZE) {
                 inset = 2;
             }
             mCropFrame.draw(canvas, Math.round(r.left) - inset, Math.round(r.top) - inset, Math.round(r.width()) + inset * 2, Math.round(r.height()) + inset * 2);
-
-            //drawCropFrame(canvas, r);
-            /* float centerY = (r.top + r.bottom) / 2;
-            float centerX = (r.left + r.right) / 2;
-            boolean notMoving = mMovingEdges == 0;
-            if ((mMovingEdges & MOVE_RIGHT) != 0 || notMoving) {
-                mArrow.draw(canvas,
-                        Math.round(r.right - mArrow.getWidth() / 2),
-                        Math.round(centerY - mArrow.getHeight() / 2));
-            }
-            if ((mMovingEdges & MOVE_LEFT) != 0 || notMoving) {
-                mArrow.draw(canvas,
-                        Math.round(r.left - mArrow.getWidth() / 2),
-                        Math.round(centerY - mArrow.getHeight() / 2));
-            }
-            if ((mMovingEdges & MOVE_TOP) != 0 || notMoving) {
-                mArrow.draw(canvas,
-                        Math.round(centerX - mArrow.getWidth() / 2),
-                        Math.round(r.top - mArrow.getHeight() / 2));
-            }
-            if ((mMovingEdges & MOVE_BOTTOM) != 0 || notMoving) {
-                mArrow.draw(canvas,
-                        Math.round(centerX - mArrow.getWidth() / 2),
-                        Math.round(r.bottom - mArrow.getHeight() / 2));
-            }*/
         }
 
         private void drawHighlightRectangle(GLCanvas canvas, RectF r) {
-            //TODO
             GL11 gl = canvas.getGLInstance();
             gl.glLineWidth(1.0f);
             gl.glEnable(GL11.GL_LINE_SMOOTH);
@@ -1056,87 +1007,6 @@ public class CropView extends GLView {
 
     }
 
-    private class DetectFaceTask extends Thread {
-        private final FaceDetector.Face[] mFaces = new FaceDetector.Face[MAX_FACE_COUNT];
-        private final Bitmap mFaceBitmap;
-        private int mFaceCount;
-
-        public DetectFaceTask(Bitmap bitmap) {
-            mFaceBitmap = bitmap;
-            setName("face-detect");
-        }
-
-        @Override
-        public void run() {
-            Bitmap bitmap = mFaceBitmap;
-            FaceDetector detector = new FaceDetector(
-                    bitmap.getWidth(), bitmap.getHeight(), MAX_FACE_COUNT);
-            mFaceCount = detector.findFaces(bitmap, mFaces);
-            mMainHandler.sendMessage(
-                    mMainHandler.obtainMessage(MSG_UPDATE_FACES, this));
-        }
-
-        private RectF getFaceRect(FaceDetector.Face face) {
-            PointF point = new PointF();
-            face.getMidPoint(point);
-
-            int width = mFaceBitmap.getWidth();
-            int height = mFaceBitmap.getHeight();
-            float rx = face.eyesDistance() * FACE_EYE_RATIO;
-            float ry = rx;
-            float aspect = mAspectRatio;
-            if (aspect != UNSPECIFIED) {
-                if (aspect > 1) {
-                    rx = ry * aspect;
-                } else {
-                    ry = rx / aspect;
-                }
-            }
-
-            RectF r = new RectF(
-                    point.x - rx, point.y - ry, point.x + rx, point.y + ry);
-            r.intersect(0, 0, width, height);
-
-            if (aspect != UNSPECIFIED) {
-                if (r.width() / r.height() > aspect) {
-                    float w = r.height() * aspect;
-                    r.left = (r.left + r.right - w) * 0.5f;
-                    r.right = r.left + w;
-                } else {
-                    float h = r.width() / aspect;
-                    r.top = (r.top + r.bottom - h) * 0.5f;
-                    r.bottom = r.top + h;
-                }
-            }
-
-            r.left /= width;
-            r.right /= width;
-            r.top /= height;
-            r.bottom /= height;
-            return r;
-        }
-
-        public void updateFaces() {
-            /*if (mFaceCount > 1) {
-                for (int i = 0, n = mFaceCount; i < n; ++i) {
-                    mFaceDetectionView.addFace(getFaceRect(mFaces[i]));
-                }
-                mFaceDetectionView.setVisibility(GLView.VISIBLE);
-                //SlideNotice.makeNotice(mActivity.getAndroidContext(), mActivity.getAndroidContext().getResources().getString(R.string.multiface_crop_help), SlideNotice.NOTICE_TYPE_SUCCESS, SlideNotice.LENGTH_SHORT).show();
-            } else if (mFaceCount == 1) {
-                mFaceDetectionView.setVisibility(GLView.INVISIBLE);
-                mHighlightRectangle.setRectangle(getFaceRect(mFaces[0]));
-                mHighlightRectangle.setVisibility(GLView.VISIBLE);
-            } else if (mFaceCount == 0) {
-                mHighlightRectangle.setInitRectangle();
-                mHighlightRectangle.setVisibility(GLView.VISIBLE);
-            }*/
-
-            mHighlightRectangle.setInitRectangle();
-            mHighlightRectangle.setVisibility(GLView.VISIBLE);
-        }
-    }
-
     public void setDataModel(TileImageView.Model dataModel, int rotation) {
         if (((rotation / 90) & 0x01) != 0) {
             mImageWidth = dataModel.getImageHeight();
@@ -1153,36 +1023,6 @@ public class CropView extends GLView {
         mHighlightRectangle.updateFrame();
     }
 
-    public void detectFaces(Bitmap bitmap) {
-        int rotation = mImageRotation;
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        float scale = (float) Math.sqrt((float) FACE_PIXEL_COUNT / (width * height));
-
-        // faceBitmap is a correctly rotated bitmap, as viewed by a user.
-        Bitmap faceBitmap;
-        if (((rotation / 90) & 1) == 0) {
-            int w = (Math.round(width * scale) & ~1); // must be even
-            int h = Math.round(height * scale);
-            faceBitmap = Bitmap.createBitmap(w, h, Config.RGB_565);
-            Canvas canvas = new Canvas(faceBitmap);
-            canvas.rotate(rotation, w / 2, h / 2);
-            canvas.scale((float) w / width, (float) h / height);
-            canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
-        } else {
-            int w = (Math.round(height * scale) & ~1); // must be even
-            int h = Math.round(width * scale);
-            faceBitmap = Bitmap.createBitmap(w, h, Config.RGB_565);
-            Canvas canvas = new Canvas(faceBitmap);
-            canvas.translate(w / 2, h / 2);
-            canvas.rotate(rotation);
-            canvas.translate(-h / 2, -w / 2);
-            canvas.scale((float) w / height, (float) h / width);
-            canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
-        }
-        new DetectFaceTask(faceBitmap).start();
-    }
-
     public void initializeHighlightRectangle() {
         mHighlightRectangle.setInitRectangle();
         mHighlightRectangle.setVisibility(GLView.VISIBLE);
@@ -1197,29 +1037,24 @@ public class CropView extends GLView {
     }
 
     private void updateCropSizeText() {
-        if (mContext instanceof CropImageActivity) {
-            ((CropImageActivity) mContext).updateCropSize(getCropSizeString());
+        if (mOnCropSizeChangeListener != null) {
+            RectF rect = mHighlightRectangle.mHighlightRect;
+            int l = Math.round(rect.left * mImageWidth);
+            int t = Math.round(rect.top * mImageHeight);
+            int r = Math.round(rect.right * mImageWidth);
+            int b = Math.round(rect.bottom * mImageHeight);
+            int width = r - l;
+            int height = b - t;
+
+            if (width < MIN_SELECTION_LENGTH) {
+                width = (int) MIN_SELECTION_LENGTH;
+            }
+            if (height < MIN_SELECTION_LENGTH) {
+                height = (int) MIN_SELECTION_LENGTH;
+            }
+
+            mOnCropSizeChangeListener.onCropSizeChanged(l, t, r, b, width, height);
         }
-    }
-
-    public void setFlippable(boolean flippable) {
-        mFlippable = flippable;
-    }
-
-    public String getCropSizeString() {
-        RectF rect = mHighlightRectangle.mHighlightRect;
-        int l = Math.round(rect.left * mImageWidth);
-        int t = Math.round(rect.top * mImageHeight);
-        int r = Math.round(rect.right * mImageWidth);
-        int b = Math.round(rect.bottom * mImageHeight);
-        int width = r - l;
-        int height = b - t;
-
-        if (width < MIN_SELECTION_LENGTH)
-            width = (int) MIN_SELECTION_LENGTH;
-        if (height < MIN_SELECTION_LENGTH)
-            height = (int) MIN_SELECTION_LENGTH;
-        return width + " x " + height;
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -1403,7 +1238,7 @@ public class CropView extends GLView {
         mCurrMultiScale = mTempScale;
 
         mAnimation.mapRect(r, tempRect);
-        updateCropSizeText(mCurrMultiScale, tempRect.width(), tempRect.height());
+        updateCropSizeText(mCurrMultiScale, tempRect);
 
     }
 
@@ -1476,15 +1311,18 @@ public class CropView extends GLView {
     }
 
     //update the text of crop_size when scaling by two-fingers
-    private void updateCropSizeText(float scale, float rectWidth, float rectHeight) {
-        int width = Math.round(rectWidth / scale);
-        int height = Math.round(rectHeight / scale);
-        if (width < MIN_SELECTION_LENGTH)
+    private void updateCropSizeText(float scale, RectF rectF) {
+        int width = Math.round(rectF.width() / scale);
+        int height = Math.round(rectF.height() / scale);
+        if (width < MIN_SELECTION_LENGTH) {
             width = (int) MIN_SELECTION_LENGTH;
-        if (height < MIN_SELECTION_LENGTH)
+        }
+        if (height < MIN_SELECTION_LENGTH) {
             height = (int) MIN_SELECTION_LENGTH;
-        if (mContext instanceof CropImageActivity) {
-            ((CropImageActivity) mContext).updateCropSize(width + " x " + height);
+        }
+        if (mOnCropSizeChangeListener != null) {
+            mOnCropSizeChangeListener.onCropSizeChanged((int) rectF.left, (int) rectF.top,
+                    (int) rectF.right, (int) rectF.bottom, width, height);
         }
     }
 
@@ -1501,14 +1339,6 @@ public class CropView extends GLView {
         mFirstFingerStartY = event.getY(0);
         mSecondFingerStartX = event.getX(1);
         mSecondFingerStartY = event.getY(1);
-    }
-
-    public int getmImageWidth() {
-        return mImageWidth;
-    }
-
-    public int getmImageHeight() {
-        return mImageHeight;
     }
 
     public void setCustomizeCropSize(int width, int height) {
@@ -1553,34 +1383,6 @@ public class CropView extends GLView {
 
 
     public void rotateCropFrame() {
-        /*if (mAspectRatio != 1) {
-            RectF highLightRect = mHighlightRectangle.mHighlightRect;
-            mTempRect.set(highLightRect);
-            mTempRect.inset(highLightRect.width() / 4f, highLightRect.height() / 4f);
-                float centerX = highLightRect.centerX();
-                float centerY = highLightRect.centerY();
-                float heightBy2 = highLightRect.width() * mImageWidth / (mImageHeight * 2f);
-                float widthBy2 = highLightRect.height() * mImageHeight / (mImageWidth * 2f);
-                float l, r, t, b;
-                l = Math.max(centerX - widthBy2, 0);
-                r = Math.min(centerX + widthBy2, 1);
-                t = Math.max(centerY - heightBy2, 0);
-                b = Math.min(centerY + heightBy2, 1);
-                
-                highLightRect.set(l, t, r, b);
-                mAspectRatio = 1f / mAspectRatio;
-                
-                float targetRatio = mAspectRatio * mImageHeight / mImageWidth;
-                if (mAspectRatio != UNSPECIFIED && targetRatio != (r - l) / (b - t)) {
-                    mTempRect.set(0, 0, targetRatio, 1);
-                    centerX = highLightRect.centerX();
-                    centerY = highLightRect.centerY();
-                    Utils.fitRectFInto(mTempRect, highLightRect, highLightRect);
-                    highLightRect.offset(centerX - highLightRect.centerX(), centerY - highLightRect.centerY());
-                }
-                updateCropSizeText(); 
-            }*/
-
         RectF highLightRect = mHighlightRectangle.mHighlightRect;
         float centerX = highLightRect.centerX();
         float centerY = highLightRect.centerY();
@@ -1654,4 +1456,14 @@ public class CropView extends GLView {
         return output;
     }
 
+
+    public interface OnCropSizeChangeListener {
+        /**
+         * @param left
+         * @param top
+         * @param right
+         * @param bottom
+         */
+        public void onCropSizeChanged(int left, int top, int right, int bottom, int w, int h);
+    }
 }

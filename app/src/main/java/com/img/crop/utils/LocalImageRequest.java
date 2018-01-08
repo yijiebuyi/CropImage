@@ -8,6 +8,18 @@ import android.util.Log;
 import com.img.crop.MediaItem;
 import com.img.crop.thdpool.ThreadPool;
 
+/*
+ * Copyright (C) 2017
+ * 版权所有
+ *
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2018/1/5
+ *
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
 public class LocalImageRequest implements ThreadPool.Job<Bitmap> {
     private static final String TAG = "ImageCacheRequest";
     private static final int TARGET_SIZE = 1080;

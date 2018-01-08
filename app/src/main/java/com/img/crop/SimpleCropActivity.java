@@ -9,7 +9,7 @@ import android.widget.TextView;
  * Copyright (C) 2017 重庆呼我出行网络科技有限公司
  * 版权所有
  *
- * 功能描述：
+ * 功能描述：简单功的裁剪
  * 作者：huangyong
  * 创建时间：2018/1/5
  *
@@ -23,7 +23,7 @@ public class SimpleCropActivity extends BaseCropActivity implements View.OnClick
 
     @Override
     protected View getBottomContainerView() {
-        return LayoutInflater.from(this).inflate(R.layout.activity_simple_crop, null);
+        return LayoutInflater.from(this).inflate(R.layout.layout_simple_crop, null);
     }
 
     @Override

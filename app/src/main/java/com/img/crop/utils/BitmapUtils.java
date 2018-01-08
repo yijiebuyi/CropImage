@@ -34,20 +34,18 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
 
-/*  =======================================================================================
- *  Copyright (C) 2017 app.com. All rights reserved.
+/*
+ * Copyright (C) 2017
+ * 版权所有
  *
- *  This computer program source code file is protected by copyright law and international
- *  treaties. Unauthorized distribution of source code files, programs, or portion of the
- *  package, may result in severe civil and criminal penalties, and will be prosecuted to
- *  the maximum extent under the law.
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2018/1/5
  *
- *  ---------------------------------------------------------------------------------------
- * Author:Administrator
- * Date:2017/9/11
- * Desc:
- *
- * ======================================================================================== */
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
 public class BitmapUtils {
     private static final String TAG = "BitmapUtils";
     private static final int DEFAULT_JPEG_QUALITY = 90;

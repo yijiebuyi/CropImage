@@ -1,7 +1,6 @@
 package com.img.crop.utils;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
@@ -20,8 +19,6 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.img.crop.MediaItem;
 import com.img.crop.R;
-import com.img.crop.exif.ExifData;
-import com.img.crop.exif.ExifOutputStream;
 import com.img.crop.thdpool.ThreadPool;
 
 import java.io.File;
@@ -218,9 +215,7 @@ public class CropBusiness {
         }
     }
 
-    public static File saveMedia(ThreadPool.JobContext jc, Bitmap cropped, String filePath, ExifData exifData) {
-        // Try file-1.jpg, file-2.jpg, ... until we find a filename
-        // which does not exist yet.
+    public static File saveMedia(ThreadPool.JobContext jc, Bitmap cropped, String filePath) {
         File save = new File(filePath);
         File candidate = new File(filePath + "_temp");
         String fileExtension = getExtensionName(filePath);
@@ -246,14 +241,7 @@ public class CropBusiness {
         try {
             FileOutputStream fos = new FileOutputStream(candidate);
             try {
-                if (exifData != null) {
-                    ExifOutputStream eos = new ExifOutputStream(fos);
-                    eos.setExifData(exifData);
-                    saveBitmapToOutputStream(jc, cropped, convertExtensionToCompressFormat(fileExtension), eos);
-                } else {
-                    saveBitmapToOutputStream(jc, cropped, convertExtensionToCompressFormat(fileExtension), fos);
-                }
-
+                saveBitmapToOutputStream(jc, cropped, convertExtensionToCompressFormat(fileExtension), fos);
                 candidate.renameTo(save);
                 candidate.delete();
             } finally {
@@ -436,4 +424,23 @@ public class CropBusiness {
             e.printStackTrace();
         }
     }
+
+    // Below are used the detect using database in the render thread. It only
+    // works most of the time, but that's ok because it's for debugging only.
+    private static volatile Thread sCurrentThread;
+    private static volatile boolean sWarned;
+
+    public static void setRenderThread() {
+        sCurrentThread = Thread.currentThread();
+    }
+
+    public static void assertNotInRenderThread() {
+        if (!sWarned) {
+            if (Thread.currentThread() == sCurrentThread) {
+                sWarned = true;
+                Log.w(TAG, new Throwable("Should not do this in render thread"));
+            }
+        }
+    }
+
 }

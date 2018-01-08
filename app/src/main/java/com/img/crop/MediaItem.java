@@ -12,12 +12,10 @@ package com.img.crop;
  * 修改日期
  */
 public class MediaItem {
-    public final static boolean KEEP_RATIO = true;
     public final static int TYPE_THUMBNAIL = 0;
     public final static int TYPE_MICROTHUMBNAIL = 1;
 
     private String mimeType;
-    private int fullImageRotation;
     private int rotation;
 
     public String filePath;

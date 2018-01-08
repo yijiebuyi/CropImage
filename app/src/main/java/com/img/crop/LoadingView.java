@@ -9,7 +9,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.view.View;
-import com.img.crop.utils.CropUtils;
+
+import com.img.crop.utils.CropBusiness;
 
 public class LoadingView extends View {
     private final static int DEFAULT_SIZE = 70;
@@ -78,7 +79,7 @@ public class LoadingView extends View {
 
     private void init(int size) {
         if (size <= 0) {
-            mSize = CropUtils.dpToPixel(26);
+            mSize = CropBusiness.dpToPixel(getContext(), 26);
         } else {
             mSize = size;
         }
@@ -104,7 +105,7 @@ public class LoadingView extends View {
 
     public void setSize(int size) {
         if (size <= 0) {
-            mSize = CropUtils.dpToPixel(35);
+            mSize = CropBusiness.dpToPixel(getContext(), 35);
         } else {
             mSize = size;
         }

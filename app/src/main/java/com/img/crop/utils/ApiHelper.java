@@ -9,6 +9,18 @@ import android.os.Build;
 import android.provider.MediaStore.MediaColumns;
 import android.view.View;
 
+/*
+ * Copyright (C) 2017
+ * 版权所有
+ *
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2018/1/5
+ *
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
 public class ApiHelper {
     public static interface VERSION_CODES {
         // These value are copied from Build.VERSION_CODES

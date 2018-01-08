@@ -12,21 +12,18 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-/*  =======================================================================================
- *  Copyright (C) 2017 app.com. All rights reserved.
+/*
+ * Copyright (C) 2017
+ * 版权所有
  *
- *  This computer program source code file is protected by copyright law and international
- *  treaties. Unauthorized distribution of source code files, programs, or portion of the
- *  package, may result in severe civil and criminal penalties, and will be prosecuted to
- *  the maximum extent under the law.
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2017/12/29
  *
- *  ---------------------------------------------------------------------------------------
- * Author:Administrator
- * Date:2017/9/11
- * Desc:
- *
- * ======================================================================================== */
-
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
 public class BottomSheet extends Dialog implements DialogInterface.OnCancelListener,
         DialogInterface.OnDismissListener, View.OnClickListener {
 

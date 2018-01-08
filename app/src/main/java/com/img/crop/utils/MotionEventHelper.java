@@ -5,8 +5,18 @@ import android.graphics.Matrix;
 import android.view.MotionEvent;
 import android.view.MotionEvent.PointerCoords;
 
-import com.img.crop.utils.ApiHelper;
-
+/*
+ * Copyright (C) 2017
+ * 版权所有
+ *
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2018/1/5
+ *
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
 public final class MotionEventHelper {
     private MotionEventHelper() {
     }

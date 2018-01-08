@@ -12,11 +12,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.img.crop.AbstractCropActivity;
 import com.img.crop.R;
 
 public class DialogCustomizedCropRatio {
-    private AbstractCropActivity mContext;
+    private Context mContext;
     private EditText mCropWidthEdit;
     private EditText mCropHeightEdit;
     private ImageView mCropRatioLockBtn;
@@ -32,8 +31,8 @@ public class DialogCustomizedCropRatio {
     private AlertDialog mDialog;
     private ICustomizedCropSizeListener mICustomizedCropSizeListener;
 
-    public DialogCustomizedCropRatio(AbstractCropActivity activity) {
-        mContext = activity;
+    public DialogCustomizedCropRatio(Context context) {
+        mContext = context;
     }
 
     public void show() {
@@ -48,8 +47,7 @@ public class DialogCustomizedCropRatio {
     }
 
     private void loadDialogView() {
-        LayoutInflater layoutInflater = (LayoutInflater) mContext.getAndroidContext()
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View contentView = layoutInflater.inflate(R.layout.dialog_customize_crop_layout, null);
 
         mCropWidthEdit = (EditText) contentView.findViewById(R.id.cropsize_edit_width);
@@ -80,8 +78,8 @@ public class DialogCustomizedCropRatio {
 
         mDialog = new AlertDialog.Builder((Activity) mContext)
                 .setView(contentView)
-                .setNegativeButton(mContext.getAndroidContext().getString(R.string.cancel), null)
-                .setPositiveButton(mContext.getAndroidContext().getString(R.string.confirm), mPositiveBtnClick)
+                .setNegativeButton(mContext.getString(R.string.cancel), null)
+                .setPositiveButton(mContext.getString(R.string.confirm), mPositiveBtnClick)
                 .create();
 
         mDialog.setCanceledOnTouchOutside(false);
