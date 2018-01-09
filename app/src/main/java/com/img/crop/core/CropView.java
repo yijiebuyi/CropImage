@@ -9,7 +9,6 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.animation.DecelerateInterpolator;
 
-import com.img.crop.BaseCropActivity;
 import com.img.crop.R;
 import com.img.crop.glsrender.anim.Animation;
 import com.img.crop.glsrender.anim.AnimationTime;
@@ -17,7 +16,6 @@ import com.img.crop.glsrender.gl11.GLCanvas;
 import com.img.crop.glsrender.gl11.GLPaint;
 import com.img.crop.glsrender.gl11.GLView;
 import com.img.crop.glsrender.gl11.NinePatchTexture;
-import com.img.crop.thdpool.ThreadPool;
 import com.img.crop.utils.Utils;
 
 import java.util.ArrayList;
