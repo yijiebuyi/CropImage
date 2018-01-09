@@ -18,17 +18,12 @@ import com.img.crop.glsrender.gl11.GLView;
 import com.img.crop.glsrender.gl11.NinePatchTexture;
 import com.img.crop.utils.Utils;
 
-import java.util.ArrayList;
-
 import javax.microedition.khronos.opengles.GL11;
 
 public class CropView extends GLView {
     private static final String TAG = "CropView";
 
-    private static final int FACE_PIXEL_COUNT = 120000; // around 400x300
-
     private static final int COLOR_OUTLINE = 0xFF008AFF;
-
     private static final float OUTLINE_WIDTH = 3f;
 
     private static final int SIZE_UNKNOWN = -1;
@@ -62,26 +57,14 @@ public class CropView extends GLView {
     //MAX_SCALE值设置越大，缝隙越明显。[图片绘制/高亮框/裁剪素材绘制的算法不一致导致，根本原因：精度丢失]
     private static final float MAX_SCALE = 100.0f;
 
-    private float mAspectRatio = UNSPECIFIED;
-    private float mSpotlightRatioX = 0;
-    private float mSpotlightRatioY = 0;
+    private int mImageRotation;
+    private int mTouchEdges = ONTOUCH_NOTHING;
 
     private HighlightRectangle mHighlightRectangle;
     private TileImageView mImageView;
     private AnimationController mAnimation = new AnimationController();
 
-    private int mImageWidth = SIZE_UNKNOWN;
-    private int mImageHeight = SIZE_UNKNOWN;
-
-    private Context mContext;
-
     private GLPaint mPaint = new GLPaint();
-
-    private int mImageRotation;
-    private int mTouchEdges = ONTOUCH_NOTHING;
-
-    private RectF mTempRect;
-    private RectF mTempOutRect = new RectF();
 
     // Multi-finger operation parameters
     private float mTempScale = 1.0f;
@@ -106,8 +89,17 @@ public class CropView extends GLView {
 
     private int mCustomizeCropWidth;
     private int mCustomizeCropHeight;
-    private RectF mCurrentHighlightRect = new RectF();
+    private int mImageWidth = SIZE_UNKNOWN;
+    private int mImageHeight = SIZE_UNKNOWN;
+    private float mAspectRatio = UNSPECIFIED;
+    private float mSpotlightRatioX = 0;
+    private float mSpotlightRatioY = 0;
 
+    private RectF mCurrentHighlightRect = new RectF();
+    private RectF mTempRect;
+    private RectF mTempOutRect = new RectF();
+
+    private Context mContext;
     private OnCropSizeChangeListener mOnCropSizeChangeListener;
 
     public CropView(Context context) {
