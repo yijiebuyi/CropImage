@@ -128,8 +128,10 @@ public class CropView extends GLView {
     }
 
     public void setAspectRatio(float ratio) {
-        if (ratio == mAspectRatio)
+        if (ratio == mAspectRatio) {
             return;
+        }
+
         mAspectRatio = ratio;
         if (mAspectRatio != UNSPECIFIED) {
             float centerX = mHighlightRectangle.mHighlightRect.centerX();
