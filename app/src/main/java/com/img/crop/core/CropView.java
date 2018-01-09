@@ -15,7 +15,6 @@ import com.img.crop.glsrender.anim.Animation;
 import com.img.crop.glsrender.anim.AnimationTime;
 import com.img.crop.glsrender.gl11.GLCanvas;
 import com.img.crop.glsrender.gl11.GLPaint;
-import com.img.crop.glsrender.gl11.GLRoot;
 import com.img.crop.glsrender.gl11.GLView;
 import com.img.crop.glsrender.gl11.NinePatchTexture;
 import com.img.crop.thdpool.ThreadPool;
@@ -115,7 +114,7 @@ public class CropView extends GLView {
 
     public CropView(Context context) {
         mContext = context;
-        mImageView = buildTileImageView(context);
+        mImageView = new TileImageView(context);
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         mHighlightRectangle = new HighlightRectangle();
 
@@ -132,16 +131,6 @@ public class CropView extends GLView {
         //mNormalFrame = new NinePatchTexture(activity.getAndroidContext(), R.drawable.crop_frame);
         mNormalFrame = new NinePatchTexture(context, R.drawable.crop_frame_big);
         mCropFrame = mNormalFrame;
-    }
-
-    private TileImageView buildTileImageView(Context context) {
-        ThreadPool threadPool = null;
-        if (context instanceof BaseCropActivity) {
-            threadPool = ((BaseCropActivity) context).getThreadPool();
-        } else {
-            threadPool = new ThreadPool();
-        }
-        return new TileImageView(context, threadPool);
     }
 
     public void setOnCropSizeChangeListener(OnCropSizeChangeListener listener) {

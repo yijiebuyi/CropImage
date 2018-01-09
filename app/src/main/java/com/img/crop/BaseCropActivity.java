@@ -130,7 +130,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
     private String mCompressFormat = null;
 
     private int mState = STATE_INIT;
-    private ThreadPool mThreadPool;
     private Handler mHandler;
 
     private boolean mFlippable = true;
@@ -253,18 +252,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
 
     public GLRoot getGLRoot() {
         return mGLRootView;
-    }
-
-    /**
-     * 获取线程池
-     *
-     * @return
-     */
-    public synchronized ThreadPool getThreadPool() {
-        if (mThreadPool == null) {
-            mThreadPool = new ThreadPool();
-        }
-        return mThreadPool;
     }
 
     /**
@@ -464,7 +451,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         showLoadingProgressDialog();
         boolean supportedByBitmapRegionDecoder = CropBusiness.isSupportRegionDecoder(mMediaItem.filePath);
         if (supportedByBitmapRegionDecoder) {
-            mLoadTask = getThreadPool().submit(
+            mLoadTask = ThreadPool.getInstance().submit(
                     new ThreadPool.Job<BitmapRegionDecoder>() {
                         @Override
                         public BitmapRegionDecoder run(ThreadPool.JobContext jc) {
@@ -488,7 +475,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
                         }
                     });
         } else {
-            mLoadBitmapTask = getThreadPool().submit(
+            mLoadBitmapTask = ThreadPool.getInstance().submit(
                     new ThreadPool.Job<Bitmap>() {
                         @Override
                         public Bitmap run(ThreadPool.JobContext jc) {
@@ -573,7 +560,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
         mState = STATE_SAVING;
 
         showLoadingProgressDialog();
-        mSaveTask = getThreadPool().submit(new SaveOutput(cropRect),
+        mSaveTask = ThreadPool.getInstance().submit(new SaveOutput(cropRect),
                 new FutureListener<Intent>() {
                     public void onFutureDone(Future<Intent> future) {
                         mSaveTask = null;

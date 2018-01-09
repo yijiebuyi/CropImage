@@ -117,7 +117,6 @@ public class TileImageView extends GLView {
     private final TileUploader mTileUploader = new TileUploader();
     private boolean mIsTextureFreed;
     private Future<Void> mTileDecoder;
-    private final ThreadPool mThreadPool;
     private boolean mBackgroundTileUploaded;
     private boolean mNeedChangeTextureFilter = false;
     private int mChangeTextureFilter = GL11.GL_LINEAR;
@@ -148,9 +147,8 @@ public class TileImageView extends GLView {
                               int borderSize, TileBitmapPool pool);
     }
 
-    public TileImageView(Context context, ThreadPool threadPool) {
-        mThreadPool = threadPool;
-        mTileDecoder = mThreadPool.submit(new TileDecoder());
+    public TileImageView(Context context) {
+        mTileDecoder = ThreadPool.getInstance().submit(new TileDecoder());
         if (TILE_SIZE == 0) {
             if (CropBusiness.isHighResolution(context)) {
                 TILE_SIZE = 510;
@@ -399,7 +397,7 @@ public class TileImageView extends GLView {
 
     public void prepareTextures() {
         if (mTileDecoder == null) {
-            mTileDecoder = mThreadPool.submit(new TileDecoder());
+            mTileDecoder = ThreadPool.getInstance().submit(new TileDecoder());
         }
         if (mIsTextureFreed) {
             layoutTiles(mCenterX, mCenterY, mScale, mRotation);
