@@ -12,10 +12,6 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import com.img.crop.core.TileImageView;
-
-import java.net.URI;
-
 /*
  * Copyright (C) 2017
  * 版权所有
