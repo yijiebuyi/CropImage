@@ -12,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import static com.img.crop.CropConstants.CROP_ACTION;
+
 /*
  * Copyright (C) 2017
  * 版权所有
@@ -48,7 +50,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(MainActivity.this, SelectionPictureActivity.class);
-                i.putExtra(CropConstants.NEED_CROP, true);
+                //i.putExtra(CropConstants.NEED_CROP, true);
                 i.putExtra(CropConstants.CROP_MODE, mCropMode);
                 startActivityForResult(i, 1024);
             }
@@ -80,6 +82,11 @@ public class MainActivity extends Activity {
                     if (uri != null) {
                         Bitmap bitmap = BitmapFactory.decodeFile(uri.getPath());
                         mImageView.setImageBitmap(bitmap);
+
+
+                        Intent intent = new Intent(CROP_ACTION, uri);
+                        intent.setClass(this, ImageViewActivity.class);
+                        startActivity(intent);
                     }
                     break;
             }

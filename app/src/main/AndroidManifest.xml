@@ -30,6 +30,10 @@
         <activity
             android:name=".EnhanceCropActivity"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ImageViewActivity"
+            android:screenOrientation="portrait" />
     </application>
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
