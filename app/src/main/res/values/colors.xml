@@ -5,6 +5,7 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="crop_background">#fffafafa</color>
+    <color name="photo_view_background">#000000</color>
     <color name="crop_bottom_bar_background">#ffeaeaea</color>
     <color name="crop_text_dark_black_color">#bb000000</color>
     <color name="crop_image_ratio_color">#bb000000</color>

@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(MainActivity.this, SelectionPictureActivity.class);
-                //i.putExtra(CropConstants.NEED_CROP, true);
+                i.putExtra(CropConstants.NEED_CROP, true);
                 i.putExtra(CropConstants.CROP_MODE, mCropMode);
                 startActivityForResult(i, 1024);
             }
@@ -80,8 +80,8 @@ public class MainActivity extends Activity {
                 case 1024:
                     Uri uri = data.getData();
                     if (uri != null) {
-                        Bitmap bitmap = BitmapFactory.decodeFile(uri.getPath());
-                        mImageView.setImageBitmap(bitmap);
+                        //Bitmap bitmap = BitmapFactory.decodeFile(uri.getPath());
+                        //mImageView.setImageBitmap(bitmap);
 
 
                         Intent intent = new Intent(CROP_ACTION, uri);

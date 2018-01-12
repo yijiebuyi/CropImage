@@ -4,7 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -16,7 +16,6 @@ import com.img.crop.glsrender.anim.AnimationTime;
 import com.img.crop.glsrender.gl11.GLCanvas;
 import com.img.crop.glsrender.gl11.GLPaint;
 import com.img.crop.glsrender.gl11.GLView;
-import com.img.crop.glsrender.gl11.NinePatchTexture;
 import com.img.crop.utils.Utils;
 
 import javax.microedition.khronos.opengles.GL11;
@@ -26,24 +25,21 @@ import javax.microedition.khronos.opengles.GL11;
  */
 
 public class ImageView extends GLView {
-    private static final String TAG = "CropView";
+    private final String TAG = "CropView";
 
     private static final int COLOR_OUTLINE = 0xFF008AFF;
     private static final float OUTLINE_WIDTH = 3f;
 
     private static final int SIZE_UNKNOWN = -1;
+
     private static final int TOUCH_TOLERANCE = 30;
-
     private static final float MIN_TOUCHMODE_SIZE = 16f;
-    public static final float UNSPECIFIED = -1f;
-
-    private static final int ANIMATION_DURATION = 1250;
-
+    private static final int ANIMATION_DURATION = 600;
     private static final int ANIMATION_TRIGGER = 64;
-    private static final int CROP_FRAME_MIN_SIZE = 64;
 
     //MAX_SCALE值设置越大，缝隙越明显。图片绘制
-    private static final float MAX_SCALE = 100.0f;
+    private final float MAX_SCALE = 100.0f;
+    private float MIN_SCALE = 1.0f;
 
     private int mImageRotation;
 
@@ -58,30 +54,16 @@ public class ImageView extends GLView {
     private float mCurrMultiCenterY;
     private float mCurrMultiScale = 1.0f;
     private float mTotalScale = 1.0f;
-    private boolean mTwoFinger = false;
-    private float mFirstFingerStartX;
-    private float mFirstFingerStartY;
-    private float mSecondFingerStartX;
-    private float mSecondFingerStartY;
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector mGestureDetector;
 
-    // private TextView mCropSizeText;
-    private NinePatchTexture mMinSizeFrame;
-    private boolean mMultiPoint;
-    private boolean mIsMoveEdges = false;
-    private boolean mIsRotateAction = false;
-
-    private int mCustomizeCropWidth;
-    private int mCustomizeCropHeight;
     private int mImageWidth = SIZE_UNKNOWN;
     private int mImageHeight = SIZE_UNKNOWN;
     private float mSpotlightRatioX = 0;
     private float mSpotlightRatioY = 0;
 
-    private RectF mCurrentHighlightRect = new RectF();
     private RectF mTempRect;
-    private RectF mTempOutRect = new RectF();
+    private boolean mOnScale = false;
 
     private Context mContext;
 
@@ -111,7 +93,7 @@ public class ImageView extends GLView {
 
         mImageView.layout(0, 0, width, height);
         if (mImageHeight != SIZE_UNKNOWN) {
-            mAnimation.initialize();
+            initialize();
         }
     }
 
@@ -136,20 +118,17 @@ public class ImageView extends GLView {
 
     @Override
     public void render(GLCanvas canvas) {
-        float scale = 1.0f;
         AnimationController a = mAnimation;
-        if (mMultiPoint) {
-            setImageViewPosition(mCurrMultiCenterX, mCurrMultiCenterY, mCurrMultiScale);
-            scale = mCurrMultiScale;
-        } else {
-            if (a.calculate(AnimationTime.get())) {
-                invalidate();
-            }
-            setImageViewPosition(a.getCenterX(), a.getCenterY(), a.getScale());
-            scale = a.getScale();
+        if (a != null && a.isActive()) {
+            a.calculate(AnimationTime.get());
+            mCurrMultiCenterX = a.getCenterX();
+            mCurrMultiCenterY = a.getCenterY();
+            mCurrMultiScale = a.getScale();
+            invalidate();
         }
 
-        if (scale > 2f) {
+        setImageViewPosition(mCurrMultiCenterX, mCurrMultiCenterY, mCurrMultiScale);
+        if (mCurrMultiScale > 2f) {
             mImageView.setChangeTextureFilter(GL11.GL_NEAREST);
         } else {
             mImageView.setChangeTextureFilter(GL11.GL_LINEAR);
@@ -160,7 +139,7 @@ public class ImageView extends GLView {
 
     @Override
     public void renderBackground(GLCanvas canvas) {
-        int bg = mContext.getResources().getColor(R.color.crop_background);
+        int bg = mContext.getResources().getColor(R.color.photo_view_background);
         canvas.clearBuffer(new float[]{Color.alpha(bg) / 255.0f, Color.red(bg) / 255.0f, Color.green(bg) / 255.0f, Color.blue(bg) / 255.0f});
     }
 
@@ -173,12 +152,14 @@ public class ImageView extends GLView {
     }
 
     private class AnimationController extends Animation {
-        private float mCurrentX;
-        private float mCurrentY;
+        private float mCenterX;
+        private float mCenterY;
         private float mCurrentScale;
+
         private float mStartX;
         private float mStartY;
         private float mStartScale;
+
         private float mTargetX;
         private float mTargetY;
         private float mTargetScale;
@@ -188,90 +169,34 @@ public class ImageView extends GLView {
             setInterpolator(new DecelerateInterpolator(4));
         }
 
-        public void initialize() {
-            mCurrentX = mImageWidth / 2.0f;
-            mCurrentY = mImageHeight / 2.0f;
-            mCurrentScale = Math.min(MAX_SCALE, Math.min(
-                    (float) getWidth() / mImageWidth,
-                    (float) getHeight() / mImageHeight));
-
-            // initialize the total scale
-            mCurrMultiCenterX = mCurrentX;
-            mCurrMultiCenterY = mCurrentY;
-            mCurrMultiScale = mCurrentScale;
-            updateTotalScale(mCurrentScale);
-        }
-
-        public void startParkingAnimation() {
-            //mStartX = mCurrentX;
-            //mStartY = mCurrentY;
-            //mStartScale = mCurrentScale;
-
-            mStartX = mCurrMultiCenterX;
-            mStartY = mCurrMultiCenterY;
-            mStartScale = mCurrMultiScale;
-
-            calculateTarget();
-            start();
-        }
-
-        //start the animation of roll_back
-        public void startRollbackingAnimation() {
-            mStartX = mCurrMultiCenterX;
-            mStartY = mCurrMultiCenterY;
-            mStartScale = mCurrMultiScale;
-
-            float width = getWidth();
-            float height = getHeight();
-
-            float scale = mCurrentScale;
-            float centerX = mImageWidth * 0.5f;
-            float centerY = mImageHeight * 0.5f;
-
-            if (mImageWidth * scale > width) {
-                float limitX = width * 0.5f / scale;
-                centerX = mImageWidth / 2.0f;
-                centerX = Utils.clamp(centerX, limitX, mImageWidth - limitX);
-            } else {
-                centerX = mImageWidth / 2.0f;
-            }
-            if (mImageHeight * scale > height) {
-                float limitY = height * 0.5f / scale;
-                centerY = mImageHeight / 2.0f;
-                centerY = Utils.clamp(centerY, limitY, mImageHeight - limitY);
-            } else {
-                centerY = mImageHeight / 2.0f;
-            }
-            mCurrMultiCenterX = mTargetX = centerX;
-            mCurrMultiCenterY = mTargetY = centerY;
-            mCurrMultiScale = mTargetScale = scale;
-
-            updateTotalScale(mTargetScale);
-            start();
-        }
-
-        public void parkNow() {
-            calculateTarget();
+        public void startAnimation(float centerX, float centerY, float scale) {
             forceStop();
-            mStartX = mCurrentX = mTargetX;
-            mStartY = mCurrentY = mTargetY;
-            mStartScale = mCurrentScale = mTargetScale;
+            reset();
+
+            mTargetX = centerX;
+            mTargetY = centerY;
+            mTargetScale = scale;
+
+            start();
+            invalidate();
         }
 
         public void inverseMapPoint(PointF point) {
             float s = mCurrentScale;
             point.x = Utils.clamp(((point.x - getWidth() * 0.5f) / s
-                    + mCurrentX) / mImageWidth, 0, 1);
+                    + mCenterX) / mImageWidth, 0, 1);
             point.y = Utils.clamp(((point.y - getHeight() * 0.5f) / s
-                    + mCurrentY) / mImageHeight, 0, 1);
+                    + mCenterY) / mImageHeight, 0, 1);
         }
 
         public RectF mapRect(RectF output) {
             float offsetX = getWidth() * 0.5f;
             float offsetY = getHeight() * 0.5f;
-            float x = mCurrentX;
-            float y = mCurrentY;
+            float x = mCenterX;
+            float y = mCenterY;
             float s = mCurrentScale;
+
+            Log.i("aaa", "mCenterX==" + mCenterX + "   mCenterY=" + mCenterY + "   mCurrentScale=" + mCurrentScale);
 
             output.set(
                     offsetX + (-x) * s,
@@ -281,62 +206,36 @@ public class ImageView extends GLView {
             return output;
         }
 
+        public void reset() {
+            mCenterX = mStartX = mCurrMultiCenterX;
+            mCenterY = mStartY = mCurrMultiCenterY;
+            mCurrentScale = mStartScale = mCurrMultiScale;
+        }
+
         @Override
         protected void onCalculate(float progress) {
-            mCurrentX = mStartX + (mTargetX - mStartX) * progress;
-            mCurrentY = mStartY + (mTargetY - mStartY) * progress;
+            mCenterX = mStartX + (mTargetX - mStartX) * progress;
+            mCenterY = mStartY + (mTargetY - mStartY) * progress;
             mCurrentScale = mStartScale + (mTargetScale - mStartScale) * progress;
 
-            if (mCurrentX == mTargetX && mCurrentY == mTargetY
-                    && mCurrentScale == mTargetScale) forceStop();
+            if (mCenterX == mTargetX && mCenterY == mTargetY
+                    && mCurrentScale == mTargetScale) {
+                forceStop();
+            }
         }
 
         public float getCenterX() {
-            return mCurrentX;
+            return mCenterX;
         }
 
         public float getCenterY() {
-            return mCurrentY;
+            return mCenterY;
         }
 
         public float getScale() {
             return mCurrentScale;
         }
 
-        private void calculateTarget() {
-            float width = getWidth();
-            float height = getHeight();
-
-            if (mImageWidth != SIZE_UNKNOWN) {
-                float minScale = Math.min(width / mImageWidth, height / mImageHeight);
-                float scale = Utils.clamp(Math.min(width / mImageWidth, height / mImageHeight), minScale, MAX_SCALE);
-                float centerX = mImageWidth / 2.0f;
-                float centerY = mImageHeight / 2.0f;
-
-                if (mImageWidth * scale > width) {
-                    float limitX = width * 0.5f / scale;
-                    centerX = mImageWidth / 2.0f;
-                    centerX = Utils.clamp(centerX, limitX, mImageWidth - limitX);
-                } else {
-                    centerX = mImageWidth / 2.0f;
-                }
-                if (mImageHeight * scale > height) {
-                    float limitY = height * 0.5f / scale;
-                    centerY = mImageHeight / 2.0f;
-                    centerY = Utils.clamp(centerY, limitY, mImageHeight - limitY);
-                } else {
-                    centerY = mImageHeight / 2.0f;
-                }
-                mTargetX = centerX;
-                mTargetY = centerY;
-                mTargetScale = scale;
-
-                mCurrMultiCenterX = centerX;
-                mCurrMultiCenterY = centerY;
-                mCurrMultiScale = scale;
-                updateTotalScale(mTargetScale);
-            }
-        }
     }
 
     public void setDataModel(TileImageView.Model dataModel, int rotation) {
@@ -351,7 +250,7 @@ public class ImageView extends GLView {
         mImageRotation = rotation;
 
         mImageView.setModel(dataModel);
-        mAnimation.initialize();
+        initialize();
     }
 
     public void resume() {
@@ -363,34 +262,22 @@ public class ImageView extends GLView {
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        private boolean mOnScale = false;
-
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             float scale = detector.getScaleFactor();
-            if (canZoomable()) {
-                mOnScale = true;
-                updateHighlightRectangle(scale);
-                if (mAnimation != null) {
-                    mAnimation.startParkingAnimation();
-                }
-            }
+            onScaling(scale);
             invalidate();
             return super.onScale(detector);
         }
 
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
-            mOnScale = false;
             return super.onScaleBegin(detector);
         }
 
         @Override
         public void onScaleEnd(ScaleGestureDetector detector) {
-            if (canZoomable() && mOnScale) {
-                updateTotalScale(mTempScale);
-                updateAnimationInfo(mCurrMultiCenterX, mCurrMultiCenterY, mTempScale);
-            }
+            updateTotalScale(mTempScale);
             invalidate();
             super.onScaleEnd(detector);
         }
@@ -399,6 +286,8 @@ public class ImageView extends GLView {
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            onMoving(distanceX, distanceY);
+            invalidate();
             return super.onScroll(e1, e2, distanceX, distanceY);
         }
 
@@ -424,12 +313,6 @@ public class ImageView extends GLView {
         mTotalScale = Utils.clamp(scale, minScale, MAX_SCALE);
     }
 
-    private void updateAnimationInfo(float centerX, float centerY, float scale) {
-        mAnimation.mTargetX = mAnimation.mStartX = mAnimation.mCurrentX = centerX;
-        mAnimation.mTargetY = mAnimation.mStartY = mAnimation.mCurrentY = centerY;
-        mAnimation.mTargetScale = mAnimation.mStartScale = mAnimation.mCurrentScale = scale;
-    }
-
     private boolean canZoomable() {
         float width = getWidth();
         float height = getHeight();
@@ -443,40 +326,93 @@ public class ImageView extends GLView {
     protected boolean onTouch(MotionEvent event) {
         mGestureDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (mAnimation != null) {
+                    mAnimation.forceStop();
+                }
+                break;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                startRollBackAnimIfNeed();
+                break;
+        }
+
         return true;
     }
 
-
     // update the highlight when scaling by two-fingers
-    public void updateHighlightRectangle(float scale) {
-        float width = getWidth();
-        float height = getHeight();
-        float minScale = Math.min(width / mImageWidth, height / mImageHeight);
-        mTempScale = Utils.clamp(scale * mTotalScale, minScale, MAX_SCALE);
-        float limitX = width * 0.5f / mTempScale;
-        float limitY = height * 0.5f / mTempScale;
+    private void onScaling(float scale) {
+        mTempScale = scale * mTotalScale;
+        mCurrMultiScale = mTempScale;
+    }
 
-        // if zoom out, update the center coordinate of picture and highlight frame
-        RectF tempRect = new RectF();
 
-        if (scale < 1.0f) {
-            if (mImageWidth * mTempScale > width) {
-                mCurrMultiCenterX = Utils.clamp(mCurrMultiCenterX, limitX, mImageWidth - limitX);
+    private void onMoving(float delX, float delY) {
+        delX = delX / mCurrMultiScale;
+        delY = delY / mCurrMultiScale;
+        mCurrMultiCenterX += delX;
+        mCurrMultiCenterY += delY;
+    }
+
+    private void initialize() {
+        int viewWidth = getWidth();
+        int viewHeight = getHeight();
+
+        mCurrMultiCenterX = mImageWidth / 2.0f;
+        mCurrMultiCenterY = mImageHeight / 2.0f;
+        mCurrMultiScale = Math.min(MAX_SCALE, Math.min((float) viewWidth / mImageWidth, (float) viewHeight / mImageHeight));
+
+        MIN_SCALE = Math.min((float) viewWidth / mImageWidth, (float) viewHeight / mImageHeight);
+        // initialize the total scale
+        updateTotalScale(mCurrMultiScale);
+    }
+
+    private void startRollBackAnimIfNeed() {
+        if (mAnimation == null) {
+            return;
+        }
+
+        float targetScale = mCurrMultiScale;
+        float targetCurrentX = mCurrMultiCenterX;
+        float targetCurrentY = mCurrMultiCenterY;
+
+        boolean needAnim = false;
+        if ((mCurrMultiScale < MIN_SCALE || mCurrMultiScale > MAX_SCALE)) {
+            needAnim = true;
+            targetScale = mCurrMultiScale < MIN_SCALE ? MIN_SCALE : MAX_SCALE;
+        }
+
+        mAnimation.reset();
+        mAnimation.mapRect(mTempRect);
+        int width = getWidth();
+        int height = getHeight();
+        if (mTempRect.left > 0 || mTempRect.right < width) {
+            needAnim = true;
+            float limitX = (width / 2) / mTotalScale;
+            if (mImageWidth * mTotalScale > width) {
+                targetCurrentX = Utils.clamp(mCurrMultiCenterX, limitX, mImageWidth - limitX);
             } else {
-                mCurrMultiCenterX = mImageWidth / 2.0f;
-            }
-
-            if (mImageHeight * mTempScale > height) {
-                mCurrMultiCenterY = Utils.clamp(mCurrMultiCenterY, limitY, mImageHeight - limitY);
-            } else {
-                mCurrMultiCenterY = mImageHeight / 2.0f;
+                targetCurrentX = mImageWidth / 2.0f;
             }
         }
 
-        mAnimation.mCurrentX = mCurrMultiCenterX;
-        mAnimation.mCurrentY = mCurrMultiCenterY;
-        mCurrMultiScale = mTempScale;
+        mAnimation.reset();
+        mAnimation.mapRect(mTempRect);
+        if (mTempRect.top > 0 || mTempRect.bottom < getHeight()) {
+            needAnim = true;
+            float limitY = (height / 2) / mTotalScale;
+            if (mImageHeight * mTotalScale > height) {
+                targetCurrentY = Utils.clamp(mCurrMultiCenterY, limitY, mImageHeight - limitY);
+            } else {
+                targetCurrentY = mImageHeight / 2.0f;
+            }
+        }
 
-        mAnimation.mapRect(tempRect);
+        if (needAnim) {
+            mAnimation.startAnimation(targetCurrentX, targetCurrentY, targetScale);
+        }
     }
 }

@@ -235,6 +235,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
                 dismissLoadingProgressDialog();
             }
             CropBusiness.clearInput(this);
+            mCropView.pause();
             mGLRootView.onPause();
         } finally {
             mGLRootView.unlockRenderThread();

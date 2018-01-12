@@ -142,6 +142,11 @@ public class ImageViewActivity extends Activity {
             mBitmapScreenNail.recycle();
             mBitmapScreenNail = null;
         }
+
+        if (mBitmap != null && !mBitmap.isRecycled()) {
+            Log.i("aaa", "========recycle======");
+            mBitmap.recycle();
+        }
     }
 
     /**
