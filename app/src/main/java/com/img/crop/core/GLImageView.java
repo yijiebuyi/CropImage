@@ -24,13 +24,16 @@ import javax.microedition.khronos.opengles.GL11;
  * Created by Administrator on 2018/1/10.
  */
 
-public class ImageView extends GLView {
-    private final String TAG = "CropView";
+public class GLImageView extends GLView {
+    private final String TAG = "GLImageView";
 
     private static final int COLOR_OUTLINE = 0xFF008AFF;
     private static final float OUTLINE_WIDTH = 3f;
 
     private static final int SIZE_UNKNOWN = -1;
+
+    private static final float FLING_COASTING_DURATION_S = 0.05f;
+    private static final int DECELERATION_FACTOR = 4;
 
     private static final int TOUCH_TOLERANCE = 30;
     private static final float MIN_TOUCHMODE_SIZE = 16f;
@@ -52,6 +55,9 @@ public class ImageView extends GLView {
     private float mTempScale = 1.0f;
     private float mCurrMultiCenterX;
     private float mCurrMultiCenterY;
+    private float mFlingDelX;
+    private float mFlingDelY;
+    private boolean mFlingMove;
     private float mCurrMultiScale = 1.0f;
     private float mTotalScale = 1.0f;
     private ScaleGestureDetector mScaleDetector;
@@ -67,7 +73,7 @@ public class ImageView extends GLView {
 
     private Context mContext;
 
-    public ImageView(Context context) {
+    public GLImageView(Context context) {
         mContext = context;
 
         mImageView = new TileImageView(context);
@@ -196,8 +202,6 @@ public class ImageView extends GLView {
             float y = mCenterY;
             float s = mCurrentScale;
 
-            Log.i("aaa", "mCenterX==" + mCenterX + "   mCenterY=" + mCenterY + "   mCurrentScale=" + mCurrentScale);
-
             output.set(
                     offsetX + (-x) * s,
                     offsetY + (-y) * s,
@@ -287,12 +291,23 @@ public class ImageView extends GLView {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             onMoving(distanceX, distanceY);
+            Log.i("aaa", "==========distanceX=" + distanceX + "    distanceY=" + distanceY);
             invalidate();
             return super.onScroll(e1, e2, distanceX, distanceY);
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            final float factor = DECELERATION_FACTOR;
+            final float velocity = Math.max(Math.abs(velocityX), Math.abs(velocityY));
+            // Dynamically calculate duration
+            final float duration = (float) (FLING_COASTING_DURATION_S
+                    * Math.pow(velocity, (1f / (factor - 1f))));
+            mFlingDelX = duration / factor * velocityX;
+            mFlingDelY = duration / factor * velocityY;
+            Log.i("aaa", "************mFlingDelX=" + mFlingDelX + "    mFlingDelY==" + mFlingDelY);
+            Log.i("aaa", "************delX=" + (e2.getX() - e1.getX()) + "    delY==" + (e2.getY() - e1.getY()));
+            mFlingMove = true;
             return super.onFling(e1, e2, velocityX, velocityY);
         }
 
@@ -329,6 +344,7 @@ public class ImageView extends GLView {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                mFlingMove = false;
                 if (mAnimation != null) {
                     mAnimation.forceStop();
                 }

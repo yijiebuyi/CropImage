@@ -13,7 +13,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.img.crop.core.GlImageView;
+import com.img.crop.core.PhotoView;
 import com.img.crop.core.TileImageViewAdapter;
 import com.img.crop.glsrender.gl11.BitmapScreenNail;
 import com.img.crop.thdpool.Future;
@@ -56,7 +56,7 @@ public class ImageViewActivity extends Activity {
 
     private static final String KEY_STATE = "state";
 
-    protected GlImageView mGLImageView;
+    protected PhotoView mGLImageView;
 
     private int mState = STATE_INIT;
     private Handler mHandler;
@@ -80,7 +80,7 @@ public class ImageViewActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mGLImageView = new GlImageView(this);
+        mGLImageView = new PhotoView(this);
         setContentView(mGLImageView);
 
         initData();

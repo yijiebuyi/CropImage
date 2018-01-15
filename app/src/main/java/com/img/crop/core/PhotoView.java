@@ -9,21 +9,21 @@ import com.img.crop.glsrender.gl11.GLRootView;
 /**
  * Created by Administrator on 2018/1/10.
  */
-public class GlImageView extends GLRootView {
-    ImageView mImageView;
+public class PhotoView extends GLRootView {
+    GLImageView mImageView;
 
-    public GlImageView(Context context) {
+    public PhotoView(Context context) {
         super(context);
         init(context);
     }
 
-    public GlImageView(Context context, AttributeSet attrs) {
+    public PhotoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
     private void init(Context context) {
-        mImageView = new ImageView(context);
+        mImageView = new GLImageView(context);
         setContentPane(mImageView);
     }
 

@@ -8,9 +8,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ToggleButton;
 
 import static com.img.crop.CropConstants.CROP_ACTION;
 
@@ -28,11 +30,14 @@ import static com.img.crop.CropConstants.CROP_ACTION;
  */
 public class MainActivity extends Activity {
     ImageView mImageView;
+    ToggleButton mCropSwitcher;
     RadioGroup mCropModeBtn;
     RadioButton mSimpleCropBtn;
     RadioButton mEnhanceCropBtn;
 
+
     int mCropMode = CropConstants.MODE_SIMPLE_CROP;
+    boolean mNeedCrop =  true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,6 +45,7 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
         mImageView = (ImageView) findViewById(R.id.img_view);
+        mCropSwitcher = (ToggleButton) findViewById(R.id.crop_switcher);
         mCropModeBtn = (RadioGroup) findViewById(R.id.crop_mode);
         mSimpleCropBtn = (RadioButton) findViewById(R.id.simple_crop);
         mEnhanceCropBtn = (RadioButton) findViewById(R.id.enhance_crop);
@@ -50,9 +56,18 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(MainActivity.this, SelectionPictureActivity.class);
-                i.putExtra(CropConstants.NEED_CROP, true);
+                i.putExtra(CropConstants.NEED_CROP, mNeedCrop);
                 i.putExtra(CropConstants.CROP_MODE, mCropMode);
                 startActivityForResult(i, 1024);
+            }
+        });
+
+
+        mCropSwitcher.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mNeedCrop = isChecked;
+                mCropModeBtn.setVisibility(isChecked ? View.VISIBLE : View.INVISIBLE);
             }
         });
 
@@ -69,6 +84,7 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
     }
 
     @Override
