@@ -13,6 +13,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.FileProvider;
 
 import com.img.crop.permissiongen.PermissionGen;
 import com.img.crop.permissiongen.internal.PermissionUtil;
@@ -230,7 +231,14 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
     protected void enterCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File outFile = new File(CropBusiness.generateCameraPicPath(this));
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outFile));
+        if (Build.VERSION.SDK_INT >= 24) { //Build.VERSION_CODES.N: 24
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Uri contentUri = FileProvider.getUriForFile(getApplicationContext(),
+                    getPackageName() + ".fileProvider", outFile);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
+        } else {
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outFile));
+        }
         startActivityForResult(intent, TAKE_PHOTO);
     }
 }
