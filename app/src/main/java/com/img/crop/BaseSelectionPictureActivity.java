@@ -190,24 +190,30 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
                 finish();
             }
 
-            AndPermission.with(this)
-                    .requestCode(REQUEST_CAMERA_PERMISSION)
-                    .permission(permissions)
-                    .rationale(new RationaleListener() {
-                        @Override
-                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
-                            //AndPermission.rationaleDialog(BaseSelectionPictureActivity.this, rationale).show();
-                            AlertDialog.newBuilder(BaseSelectionPictureActivity.this)
-                                    .setTitle(R.string.permission_title_permission_rationale)
-                                    .setMessage(R.string.permission_message_permission_rationale)
-                                    .setPositiveButton(R.string.permission_resume, mClickListener)
-                                    .setNegativeButton(R.string.permission_cancel, mClickListener)
-                                    .show();
-                            mRationale = rationale;
-                        }
-                    })
-                    .callback(this)
-                    .start();
+            if (!AndPermission.hasPermission(this, permissions)) {
+                AndPermission.with(this)
+                        .requestCode(REQUEST_CAMERA_PERMISSION)
+                        .permission(permissions)
+                        .rationale(new RationaleListener() {
+                            @Override
+                            public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                                //AndPermission.rationaleDialog(BaseSelectionPictureActivity.this, rationale).show();
+                                AlertDialog.newBuilder(BaseSelectionPictureActivity.this)
+                                        .setTitle(R.string.permission_title_permission_rationale)
+                                        .setMessage(R.string.permission_message_permission_rationale)
+                                        .setPositiveButton(R.string.permission_resume, mClickListener)
+                                        .setNegativeButton(R.string.permission_cancel, mClickListener)
+                                        .setOnCancelListener(mOnCancel)
+                                        .setOnDismissListener(mOnDismissListener)
+                                        .show();
+                                mRationale = rationale;
+                            }
+                        })
+                        .callback(this)
+                        .start();
+            } else {
+                enterCamera();
+            }
 
         } catch (SecurityException e) {
             e.printStackTrace();
@@ -222,7 +228,7 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
         try {
             String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
             //如果没有权限，关闭当前页面
-            boolean hasRationale = false;
+            boolean hasRationale = false; //false 被用户拒绝; true，没被用户拒绝
             if (Build.VERSION.SDK_INT >= 23) {
                 hasRationale = shouldRationale(permissions);
             }
@@ -231,25 +237,30 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
                 finish();
             }
 
-
-            AndPermission.with(this)
-                    .requestCode(REQUEST_GALLERY_PERMISSION)
-                    .permission(permissions)
-                    .rationale(new RationaleListener() {
-                        @Override
-                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
-                            //RationaleDialog dialog = AndPermission.rationaleDialog(BaseSelectionPictureActivity.this, rationale);
-                            AlertDialog.newBuilder(BaseSelectionPictureActivity.this)
-                                    .setTitle(R.string.permission_title_permission_rationale)
-                                    .setMessage(R.string.permission_message_permission_rationale)
-                                    .setPositiveButton(R.string.permission_resume, mClickListener)
-                                    .setNegativeButton(R.string.permission_cancel, mClickListener)
-                                    .show();
-                            mRationale = rationale;
-                        }
-                    })
-                    .callback(this)
-                    .start();
+            if (!AndPermission.hasPermission(this, permissions)) {
+                AndPermission.with(this)
+                        .requestCode(REQUEST_GALLERY_PERMISSION)
+                        .permission(permissions)
+                        .rationale(new RationaleListener() {
+                            @Override
+                            public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                                //RationaleDialog dialog = AndPermission.rationaleDialog(BaseSelectionPictureActivity.this, rationale);
+                                AlertDialog.newBuilder(BaseSelectionPictureActivity.this)
+                                        .setTitle(R.string.permission_title_permission_rationale)
+                                        .setMessage(R.string.permission_message_permission_rationale)
+                                        .setPositiveButton(R.string.permission_resume, mClickListener)
+                                        .setNegativeButton(R.string.permission_cancel, mClickListener)
+                                        .setOnCancelListener(mOnCancel)
+                                        .setOnDismissListener(mOnDismissListener)
+                                        .show();
+                                mRationale = rationale;
+                            }
+                        })
+                        .callback(this)
+                        .start();
+            } else {
+                entryGallery();
+            }
         } catch (SecurityException e) {
             e.printStackTrace();
             finish();
@@ -323,6 +334,20 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
                     finish();
                     break;
             }
+        }
+    };
+
+    private DialogInterface.OnCancelListener mOnCancel = new DialogInterface.OnCancelListener() {
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            finish();
+        }
+    };
+
+    private DialogInterface.OnDismissListener mOnDismissListener = new DialogInterface.OnDismissListener() {
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            finish();
         }
     };
 }
