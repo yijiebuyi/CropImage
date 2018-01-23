@@ -12,7 +12,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 
-import com.img.crop.R;
 import com.img.crop.glsrender.anim.AnimationTime;
 import com.img.crop.glsrender.anim.CanvasAnimation;
 import com.img.crop.utils.ApiHelper;

@@ -34,8 +34,14 @@ import java.io.File;
  * 修改日期
  */
 public abstract class BaseSelectionPictureActivity extends FragmentActivity implements CropConstants {
-    protected static final int REQUEST_GALLERY_PERMISSION = 1000;
-    protected static final int REQUEST_CAMERA_PERMISSION = 10001;
+    //获取权限
+    protected final int REQUEST_GALLERY_PERMISSION = 1000;
+    protected static final int REQUEST_CAMERA_PERMISSION = 1001;
+
+    //启动activity回调
+    protected final int CHOOSE_IMAGE = 1; // 选择图片
+    protected final int TAKE_PHOTO = 2; // 拍照
+    protected final int CROP_IMAGE_REQUEST_CODE = 3; // 裁剪
 
     protected Uri mUri;
     protected String mSelection;

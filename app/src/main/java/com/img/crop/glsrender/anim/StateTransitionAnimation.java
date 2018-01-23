@@ -3,7 +3,6 @@ package com.img.crop.glsrender.anim;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 
-import com.img.crop.glsrender.anim.Animation;
 import com.img.crop.glsrender.gl11.GLCanvas;
 import com.img.crop.glsrender.gl11.GLView;
 import com.img.crop.glsrender.gl11.RawTexture;

@@ -1,6 +1,5 @@
 package com.img.crop;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
@@ -10,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,7 +28,7 @@ import com.img.crop.utils.SynchronizedHandler;
  * Created by Administrator on 2018/1/10.
  */
 
-public class ImageViewActivity extends Activity {
+public class ImageViewActivity extends FragmentActivity {
     private final static String TAG = "Image";
 
     //==========================State=========================================
