@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.Keep;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NavUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -263,11 +264,13 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
     @PermissionFail(requestCode = REQUEST_GALLERY_PERMISSION)
     public void getGalleryFailure() {
         cancelDialog();
+        finishWhitData(RESULT_CANCELED, null);
     }
 
     @PermissionFail(requestCode = REQUEST_CAMERA_PERMISSION)
     public void getCameraFailure() {
         cancelDialog();
+        finishWhitData(RESULT_CANCELED, null);
     }
 
     @Override

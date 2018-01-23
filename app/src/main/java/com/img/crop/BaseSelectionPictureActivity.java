@@ -230,7 +230,6 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
         }
     }
 
-
     /**
      * 打開相机应用
      */
