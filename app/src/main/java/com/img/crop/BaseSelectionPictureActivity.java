@@ -2,9 +2,11 @@ package com.img.crop;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -15,9 +17,13 @@ import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.FileProvider;
 
-import com.img.crop.permissiongen.PermissionGen;
-import com.img.crop.permissiongen.internal.PermissionUtil;
+import com.img.crop.utils.ApiHelper;
 import com.img.crop.utils.CropBusiness;
+import com.yanzhenjie.alertdialog.AlertDialog;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.Rationale;
+import com.yanzhenjie.permission.RationaleDialog;
+import com.yanzhenjie.permission.RationaleListener;
 
 import java.io.File;
 
@@ -43,9 +49,7 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
     protected final int TAKE_PHOTO = 2; // 拍照
     protected final int CROP_IMAGE_REQUEST_CODE = 3; // 裁剪
 
-    protected Uri mUri;
-    protected String mSelection;
-    protected String[] mSelectionArgs;
+    private Rationale mRationale;
 
     @TargetApi(19)
     public String getPath(final Context context, final Uri uri) {
@@ -69,7 +73,7 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
                 final String id = DocumentsContract.getDocumentId(uri);
                 final Uri contentUri = ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-                return getDataColumn(context, contentUri, null, null);
+                return getDataColumnPermissionGranted(context, contentUri, null, null);
             }
 
             // MediaProvider
@@ -90,7 +94,7 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
                 final String selection = "_id=?";
                 final String[] selectionArgs = new String[]{split[1]};
 
-                return getDataColumn(context, contentUri, selection, selectionArgs);
+                return getDataColumnPermissionGranted(context, contentUri, selection, selectionArgs);
             }
         } else if (ContentResolver.SCHEME_CONTENT.equalsIgnoreCase(uri.getScheme())) {
             // MediaStore (and general)
@@ -99,36 +103,13 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
                 return uri.getLastPathSegment();
             }
 
-            return getDataColumn(context, uri, null, null);
+            return getDataColumnPermissionGranted(context, uri, null, null);
         } else if (ContentResolver.SCHEME_FILE.equalsIgnoreCase(uri.getScheme())) {
             // File
             return uri.getPath();
         }
 
         return null;
-    }
-
-    /**
-     * Get the value of the data column for this Uri. This is useful for MediaStore Uris, and other
-     * file-based ContentProviders.
-     *
-     * @param context       The context.
-     * @param uri           The Uri to query.
-     * @param selection     (Optional) Filter used in the query.
-     * @param selectionArgs (Optional) Selection arguments used in the query.
-     * @return The value of the _data column, which is typically a file path.
-     */
-    public String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
-        if (!PermissionUtil.isOverMarshmallow()) {
-            return getDataColumnPermissionGranted(context, uri, selection, selectionArgs);
-        } else {
-            mUri = uri;
-            mSelection = selection;
-            mSelectionArgs = selectionArgs;
-            PermissionGen.needPermission(this, REQUEST_GALLERY_PERMISSION, Manifest.permission.READ_EXTERNAL_STORAGE);
-            return null;
-
-        }
     }
 
     /**
@@ -196,23 +177,89 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
      */
     protected void takePhoto() {
         try {
-            if (PermissionUtil.isOverMarshmallow()) {
-                String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.CAMERA};
-                PermissionGen.needPermission(this, REQUEST_CAMERA_PERMISSION, permissions);
-            } else {
-                enterCamera();
+            String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA};
+            //如果没有权限，关闭当前页面
+            boolean hasRationale = false;
+            if (Build.VERSION.SDK_INT >= 23) {
+                hasRationale = shouldRationale(permissions);
             }
+
+            if (!AndPermission.hasPermission(this, permissions) && !hasRationale) {
+                finish();
+            }
+
+            AndPermission.with(this)
+                    .requestCode(REQUEST_CAMERA_PERMISSION)
+                    .permission(permissions)
+                    .rationale(new RationaleListener() {
+                        @Override
+                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                            //AndPermission.rationaleDialog(BaseSelectionPictureActivity.this, rationale).show();
+                            AlertDialog.newBuilder(BaseSelectionPictureActivity.this)
+                                    .setTitle(R.string.permission_title_permission_rationale)
+                                    .setMessage(R.string.permission_message_permission_rationale)
+                                    .setPositiveButton(R.string.permission_resume, mClickListener)
+                                    .setNegativeButton(R.string.permission_cancel, mClickListener)
+                                    .show();
+                            mRationale = rationale;
+                        }
+                    })
+                    .callback(this)
+                    .start();
+
         } catch (SecurityException e) {
             e.printStackTrace();
+            finish();
         }
     }
 
     /**
      * 从图库选择照片
      */
-    protected void pickerPhoto() {
+    protected void pickPhoto() {
+        try {
+            String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
+            //如果没有权限，关闭当前页面
+            boolean hasRationale = false;
+            if (Build.VERSION.SDK_INT >= 23) {
+                hasRationale = shouldRationale(permissions);
+            }
+
+            if (!AndPermission.hasPermission(this, permissions) && !hasRationale) {
+                finish();
+            }
+
+
+            AndPermission.with(this)
+                    .requestCode(REQUEST_GALLERY_PERMISSION)
+                    .permission(permissions)
+                    .rationale(new RationaleListener() {
+                        @Override
+                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                            //RationaleDialog dialog = AndPermission.rationaleDialog(BaseSelectionPictureActivity.this, rationale);
+                            AlertDialog.newBuilder(BaseSelectionPictureActivity.this)
+                                    .setTitle(R.string.permission_title_permission_rationale)
+                                    .setMessage(R.string.permission_message_permission_rationale)
+                                    .setPositiveButton(R.string.permission_resume, mClickListener)
+                                    .setNegativeButton(R.string.permission_cancel, mClickListener)
+                                    .show();
+                            mRationale = rationale;
+                        }
+                    })
+                    .callback(this)
+                    .start();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            finish();
+        }
+    }
+
+    /**
+     * 从图库选择照片
+     */
+    protected void entryGallery() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
         if (intent.resolveActivity(getPackageManager()) != null) {
@@ -246,4 +293,36 @@ public abstract class BaseSelectionPictureActivity extends FragmentActivity impl
         }
         startActivityForResult(intent, TAKE_PHOTO);
     }
+
+    @TargetApi(23)
+    private boolean shouldRationale(String[] permissions) {
+        boolean rationale = false;
+        for (String permission : permissions) {
+            rationale = shouldShowRequestPermissionRationale(permission);
+            if (rationale) {
+                break;
+            }
+        }
+
+        return rationale;
+    }
+
+    /**
+     * The dialog's btn click listener.
+     */
+    private DialogInterface.OnClickListener mClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+                case DialogInterface.BUTTON_NEGATIVE:
+                    mRationale.cancel();
+                    finish();
+                    break;
+                case DialogInterface.BUTTON_POSITIVE:
+                    mRationale.resume();
+                    finish();
+                    break;
+            }
+        }
+    };
 }

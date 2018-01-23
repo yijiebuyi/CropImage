@@ -11,15 +11,13 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.Keep;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NavUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.img.crop.permissiongen.PermissionFail;
-import com.img.crop.permissiongen.PermissionSuccess;
-import com.img.crop.permissiongen.internal.PermissionUtil;
 import com.img.crop.utils.CropBusiness;
+import com.yanzhenjie.permission.PermissionNo;
+import com.yanzhenjie.permission.PermissionYes;
 
 import java.io.File;
 import java.net.URI;
@@ -147,7 +145,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
                     finishWhitData(RESULT_LOOK, null);
                     break;
                 case 2:
-                    pickerPhoto();
+                    pickPhoto();
                     break;
                 case 3:
                     takePhoto();
@@ -166,7 +164,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
                     finishWhitData(RESULT_LOOK, null);
                     break;
                 case 1:
-                    pickerPhoto();
+                    pickPhoto();
                     break;
                 case 2:
                     takePhoto();
@@ -185,7 +183,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
                     finishWhitData(RESULT_LOOK, null);
                     break;
                 case 1:
-                    pickerPhoto();
+                    pickPhoto();
                     break;
                 case 2:
                     takePhoto();
@@ -198,7 +196,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
             //contain delete
             switch (position) {
                 case 0:
-                    pickerPhoto();
+                    pickPhoto();
                     break;
                 case 1:
                     takePhoto();
@@ -214,7 +212,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
             //default
             switch (position) {
                 case 0:
-                    pickerPhoto();
+                    pickPhoto();
                     break;
                 case 1:
                     takePhoto();
@@ -249,25 +247,26 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
     }
 
     @Keep
-    @PermissionSuccess(requestCode = REQUEST_GALLERY_PERMISSION)
+    @PermissionYes(value = REQUEST_GALLERY_PERMISSION)
     public void getGallerySuccess() {
-        String path = getDataColumnPermissionGranted(this, mUri, mSelection, mSelectionArgs);
-        setImgPathToResult(new File(path));
+        entryGallery();
     }
 
     @Keep
-    @PermissionSuccess(requestCode = REQUEST_CAMERA_PERMISSION)
+    @PermissionYes(value = REQUEST_CAMERA_PERMISSION)
     public void getCameraSuccess() {
         enterCamera();
     }
 
-    @PermissionFail(requestCode = REQUEST_GALLERY_PERMISSION)
+    @Keep
+    @PermissionNo(value = REQUEST_GALLERY_PERMISSION)
     public void getGalleryFailure() {
         cancelDialog();
         finishWhitData(RESULT_CANCELED, null);
     }
 
-    @PermissionFail(requestCode = REQUEST_CAMERA_PERMISSION)
+    @Keep
+    @PermissionNo(value = REQUEST_CAMERA_PERMISSION)
     public void getCameraFailure() {
         cancelDialog();
         finishWhitData(RESULT_CANCELED, null);
@@ -291,9 +290,7 @@ public class SelectionPictureActivity extends BaseSelectionPictureActivity imple
                             cursor.close();
                             if (picturePath == null) {
                                 picturePath = getPath(mContext, imageUri);
-                                if (!PermissionUtil.isOverMarshmallow()) {
-                                    setImgPathToResult(new File(picturePath));
-                                }
+                                setImgPathToResult(new File(picturePath));
                             } else {
                                 setImgPathToResult(new File(picturePath));
                             }
