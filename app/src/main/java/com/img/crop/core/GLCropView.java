@@ -20,8 +20,20 @@ import com.img.crop.utils.Utils;
 
 import javax.microedition.khronos.opengles.GL11;
 
-public class CropView extends GLView {
-    private static final String TAG = "CropView";
+/*
+ * Copyright (C) 2017
+ * 版权所有
+ *
+ * 功能描述：
+ * 作者：huangyong
+ * 创建时间：2018/1/24
+ *
+ * 修改人：
+ * 修改描述：
+ * 修改日期
+ */
+public class GLCropView extends GLView {
+    private static final String TAG = "CropView1";
 
     private static final int COLOR_OUTLINE = 0xFF008AFF;
     private static final float OUTLINE_WIDTH = 3f;
@@ -102,7 +114,7 @@ public class CropView extends GLView {
     private Context mContext;
     private OnCropSizeChangeListener mOnCropSizeChangeListener;
 
-    public CropView(Context context) {
+    public GLCropView(Context context) {
         mContext = context;
         mImageView = new TileImageView(context);
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
@@ -145,6 +157,8 @@ public class CropView extends GLView {
             mHighlightRectangle.updateFrame();
             updateCropSizeText();
         }
+
+        invalidate();
     }
 
     public float getAspectRatio() {
@@ -1276,6 +1290,8 @@ public class CropView extends GLView {
             mHighlightRectangle.updateFrame();
             updateCropSizeText();
             mAnimation.startParkingAnimation(srcRect);
+
+            invalidate();
         }
     }
 

@@ -8,8 +8,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.img.crop.core.CropView;
-import com.img.crop.core.DialogCustomizedCropRatio;
+import com.img.crop.core.GLCropView;
 
 /*
  * Copyright (C) 2017
@@ -24,7 +23,7 @@ import com.img.crop.core.DialogCustomizedCropRatio;
  * 修改日期
  */
 public class EnhanceCropActivity extends BaseCropActivity implements View.OnClickListener,
-        CropView.OnCropSizeChangeListener {
+        GLCropView.OnCropSizeChangeListener {
     private LinearLayout mUspeifedRatio;
     private LinearLayout mOneOneRatio;
     private LinearLayout mThreeTwoRatio;
@@ -122,7 +121,7 @@ public class EnhanceCropActivity extends BaseCropActivity implements View.OnClic
             switchCorpRatioState(id);
             switch (id) {
                 case R.id.unspecified_ratio:
-                    aspectRatio = CropView.UNSPECIFIED;
+                    aspectRatio = GLCropView.UNSPECIFIED;
                     break;
                 case R.id.one_one_ratio:
                     aspectRatio = 1;
@@ -144,7 +143,6 @@ public class EnhanceCropActivity extends BaseCropActivity implements View.OnClic
                         @Override
                         public void cropSize(int cropWidth, int cropHeight) {
                             mCropView.setCustomizeCropSize(cropWidth, cropHeight);
-                            mCropView.invalidate();
                         }
                     });
                     mDialog.show();
@@ -155,7 +153,6 @@ public class EnhanceCropActivity extends BaseCropActivity implements View.OnClic
 
             if (id != R.id.custom_ratio) {
                 mCropView.setAspectRatio(aspectRatio);
-                mCropView.invalidate();
             }
         } else {
             switch (id) {

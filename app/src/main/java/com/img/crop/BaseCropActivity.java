@@ -22,11 +22,9 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.img.crop.core.BitmapTileProvider;
-import com.img.crop.core.CropView;
+import com.img.crop.view.CropView;
 import com.img.crop.core.TileImageViewAdapter;
 import com.img.crop.glsrender.gl11.BitmapScreenNail;
-import com.img.crop.glsrender.gl11.GLRoot;
-import com.img.crop.glsrender.gl11.GLRootView;
 import com.img.crop.thdpool.Future;
 import com.img.crop.thdpool.FutureListener;
 import com.img.crop.thdpool.ThreadPool;
@@ -117,15 +115,13 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
      */
     protected RelativeLayout mTopContainer;
     /**
-     * gl view
+     * crop view
      */
-    protected GLRootView mGLRootView;
+    protected CropView mCropView;
     /**
      * 底部容器
      */
     protected RelativeLayout mBottomContainer;
-
-    protected CropView mCropView;
 
     private String mCompressFormat = null;
 
@@ -182,22 +178,15 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
     protected void onResume() {
         super.onResume();
 
-        mGLRootView.lockRenderThread();
-        try {
-            mCropView.resume();
-            mGLRootView.onResume();
-
-            switch (mState) {
-                case STATE_INIT:
-                    loadBitmap();
-                    break;
-                case STATE_SAVING:
-                    saveCropBitmap();
-                    break;
-            }
-        } finally {
-            mGLRootView.unlockRenderThread();
+        switch (mState) {
+            case STATE_INIT:
+                loadBitmap();
+                break;
+            case STATE_SAVING:
+                saveCropBitmap();
+                break;
         }
+        mCropView.onResume();
     }
 
     @Override
@@ -209,37 +198,31 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
     protected void onPause() {
         super.onPause();
 
-        mGLRootView.onPause();
-        mGLRootView.lockRenderThread();
-        try {
-            Future<BitmapRegionDecoder> loadTask = mLoadTask;
-            if (loadTask != null && !loadTask.isDone()) {
-                // load in progress, try to cancel it
-                loadTask.cancel();
-                loadTask.waitDone();
-                dismissLoadingProgressDialog();
-            }
-
-            Future<Bitmap> loadBitmapTask = mLoadBitmapTask;
-            if (loadBitmapTask != null && !loadBitmapTask.isDone()) {
-                // load in progress, try to cancel it
-                loadBitmapTask.cancel();
-                loadBitmapTask.waitDone();
-                dismissLoadingProgressDialog();
-            }
-
-            Future<Intent> saveTask = mSaveTask;
-            if (saveTask != null && !saveTask.isDone()) {
-                // save in progress, try to cancel it
-                saveTask.cancel();
-                saveTask.waitDone();
-                dismissLoadingProgressDialog();
-            }
-            CropBusiness.clearInput(this);
-            mCropView.pause();
-        } finally {
-            mGLRootView.unlockRenderThread();
+        mCropView.onPause();
+        Future<BitmapRegionDecoder> loadTask = mLoadTask;
+        if (loadTask != null && !loadTask.isDone()) {
+            // load in progress, try to cancel it
+            loadTask.cancel();
+            loadTask.waitDone();
+            dismissLoadingProgressDialog();
         }
+
+        Future<Bitmap> loadBitmapTask = mLoadBitmapTask;
+        if (loadBitmapTask != null && !loadBitmapTask.isDone()) {
+            // load in progress, try to cancel it
+            loadBitmapTask.cancel();
+            loadBitmapTask.waitDone();
+            dismissLoadingProgressDialog();
+        }
+
+        Future<Intent> saveTask = mSaveTask;
+        if (saveTask != null && !saveTask.isDone()) {
+            // save in progress, try to cancel it
+            saveTask.cancel();
+            saveTask.waitDone();
+            dismissLoadingProgressDialog();
+        }
+        CropBusiness.clearInput(this);
     }
 
     @Override
@@ -249,10 +232,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
             mBitmapScreenNail.recycle();
             mBitmapScreenNail = null;
         }
-    }
-
-    public GLRoot getGLRoot() {
-        return mGLRootView;
     }
 
     /**
@@ -294,7 +273,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
      * 初始化view
      */
     private void initView() {
-        mGLRootView = findViewById(R.id.gl_root_view);
+        mCropView = findViewById(R.id.crop_view);
         mTopContainer = findViewById(R.id.top_container);
         mBottomContainer = findViewById(R.id.bottom_container);
 
@@ -313,10 +292,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
 
         initContainerViews(mTopContainer, mBottomContainer);
 
-        //add crop to gl root view
-        mCropView = new CropView(this);
-        mGLRootView.setContentPane(mCropView);
-
         onViewsCreated();
     }
 
@@ -331,7 +306,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
     }
 
     private void initHandler() {
-        mHandler = new SynchronizedHandler(mGLRootView) {
+        mHandler = new SynchronizedHandler(mCropView) {
             @Override
             public void handleMessage(Message msg) {
                 onHandleMessage(msg);

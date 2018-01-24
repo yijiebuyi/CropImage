@@ -29,8 +29,14 @@
             android:background="@color/crop_background" />
     </FrameLayout>-->
 
-    <com.img.crop.glsrender.gl11.GLRootView
+    <!--<com.img.crop.glsrender.gl11.GLRootView
         android:id="@+id/gl_root_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />-->
+
+    <com.img.crop.view.CropView
+        android:id="@+id/crop_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />

@@ -1,6 +1,20 @@
-package com.img.crop.utils;
+/*
+ * Copyright (C) 2012 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.lang.reflect.Field;
+package com.img.crop.utils;
 
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -8,19 +22,10 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.provider.MediaStore.MediaColumns;
 import android.view.View;
+import android.view.WindowManager;
 
-/*
- * Copyright (C) 2017
- * 版权所有
- *
- * 功能描述：
- * 作者：huangyong
- * 创建时间：2018/1/5
- *
- * 修改人：
- * 修改描述：
- * 修改日期
- */
+import java.lang.reflect.Field;
+
 public class ApiHelper {
     public static interface VERSION_CODES {
         // These value are copied from Build.VERSION_CODES
@@ -32,7 +37,10 @@ public class ApiHelper {
         public static final int ICE_CREAM_SANDWICH_MR1 = 15;
         public static final int JELLY_BEAN = 16;
         public static final int JELLY_BEAN_MR1 = 17;
+        public static final int JELLY_BEAN_MR2 = 18;
     }
+
+    public static final boolean AT_LEAST_16 = Build.VERSION.SDK_INT >= 16;
 
     public static final boolean USE_888_PIXEL_FORMAT =
             Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN;
@@ -105,9 +113,6 @@ public class ApiHelper {
     public static final boolean HAS_MEDIA_ACTION_SOUND =
             Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN;
 
-    public static final boolean HAS_OLD_PANORAMA =
-            Build.VERSION.SDK_INT >= VERSION_CODES.ICE_CREAM_SANDWICH;
-
     public static final boolean HAS_TIME_LAPSE_RECORDING =
             Build.VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB;
 
@@ -119,9 +124,6 @@ public class ApiHelper {
 
     public static final boolean HAS_CAMERA_METERING_AREA =
             Build.VERSION.SDK_INT >= VERSION_CODES.ICE_CREAM_SANDWICH;
-
-    public static final boolean HAS_FINE_RESOLUTION_QUALITY_LEVELS =
-            Build.VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB;
 
     public static final boolean HAS_MOTION_EVENT_TRANSFORM =
             Build.VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB;
@@ -165,6 +167,30 @@ public class ApiHelper {
 
     public static final boolean HAS_POST_ON_ANIMATION =
             Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN;
+
+    public static final boolean HAS_ANNOUNCE_FOR_ACCESSIBILITY =
+            Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN;
+
+    public static final boolean HAS_OBJECT_ANIMATION =
+            Build.VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB;
+
+    public static final boolean HAS_GLES20_REQUIRED =
+            Build.VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB;
+
+    public static final boolean HAS_ROTATION_ANIMATION =
+            hasField(WindowManager.LayoutParams.class, "rotationAnimation");
+
+    public static final boolean HAS_ORIENTATION_LOCK =
+            Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR2;
+
+    public static final boolean HAS_CANCELLATION_SIGNAL =
+            Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN;
+
+    public static final boolean HAS_MEDIA_MUXER =
+                    Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR2;
+
+    public static final boolean HAS_DISPLAY_LISTENER =
+            Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR1;
 
     public static int getIntFieldIfExists(Class<?> klass, String fieldName,
             Class<?> obj, int defaultVal) {

@@ -13,7 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.img.crop.core.PhotoView;
+import com.img.crop.view.PhotoView;
 import com.img.crop.core.TileImageViewAdapter;
 import com.img.crop.glsrender.gl11.BitmapScreenNail;
 import com.img.crop.thdpool.Future;
@@ -56,7 +56,7 @@ public class ImageViewActivity extends FragmentActivity {
 
     private static final String KEY_STATE = "state";
 
-    protected PhotoView mGLImageView;
+    protected PhotoView mPhotoView;
 
     private int mState = STATE_INIT;
     private Handler mHandler;
@@ -80,8 +80,8 @@ public class ImageViewActivity extends FragmentActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mGLImageView = new PhotoView(this);
-        setContentView(mGLImageView);
+        mPhotoView = new PhotoView(this);
+        setContentView(mPhotoView);
 
         initData();
     }
@@ -101,7 +101,7 @@ public class ImageViewActivity extends FragmentActivity {
                 loadBitmap();
                 break;
         }
-        mGLImageView.onResume();
+        mPhotoView.onResume();
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ImageViewActivity extends FragmentActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        mGLImageView.onPause();
+        mPhotoView.onPause();
 
         try {
             Future<BitmapRegionDecoder> loadTask = mLoadTask;
@@ -144,7 +144,6 @@ public class ImageViewActivity extends FragmentActivity {
         }
 
         if (mBitmap != null && !mBitmap.isRecycled()) {
-            Log.i("aaa", "========recycle======");
             mBitmap.recycle();
         }
     }
@@ -157,7 +156,7 @@ public class ImageViewActivity extends FragmentActivity {
     }
 
     private void initHandler() {
-        mHandler = new SynchronizedHandler(mGLImageView) {
+        mHandler = new SynchronizedHandler(mPhotoView) {
             @Override
             public void handleMessage(Message msg) {
                 onHandleMessage(msg);
@@ -282,7 +281,7 @@ public class ImageViewActivity extends FragmentActivity {
         adapter.setScreenNail(mBitmapScreenNail, width, height);
         adapter.setRegionDecoder(regionDecoder);
 
-        mGLImageView.setDataModel(adapter, mMediaItem.getRotation());
+        mPhotoView.setDataModel(adapter, mMediaItem.getRotation());
     }
 
     /**
@@ -302,7 +301,7 @@ public class ImageViewActivity extends FragmentActivity {
 
         mBitmap = bitmap;
         BitmapFactory.Options options = new BitmapFactory.Options();
-        mGLImageView.setImageBitmap(bitmap, mMediaItem.getRotation());
+        mPhotoView.setImageBitmap(bitmap, mMediaItem.getRotation());
     }
 
 

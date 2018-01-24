@@ -1,4 +1,4 @@
-package com.img.crop.core;
+package com.img.crop;
 
 import android.app.Activity;
 import android.app.AlertDialog;

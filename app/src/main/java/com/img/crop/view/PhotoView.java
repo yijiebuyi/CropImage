@@ -1,16 +1,19 @@
-package com.img.crop.core;
+package com.img.crop.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
+import com.img.crop.core.BitmapTileProvider;
+import com.img.crop.core.GLImageView;
+import com.img.crop.core.TileImageView;
 import com.img.crop.glsrender.gl11.GLRootView;
 
 /**
  * Created by Administrator on 2018/1/10.
  */
 public class PhotoView extends GLRootView {
-    GLImageView mImageView;
+    private GLImageView mImageView;
 
     public PhotoView(Context context) {
         super(context);
