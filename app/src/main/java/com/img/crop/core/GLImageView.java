@@ -69,7 +69,9 @@ public class GLImageView extends GLView {
     private float mSpotlightRatioY = 0;
 
     private RectF mTempRect;
-    private boolean mOnScale = false;
+    private PointF mTempPoint;
+
+    private boolean mCanOverScroll = true; //是否支持OverScroll
 
     private Context mContext;
 
@@ -82,6 +84,7 @@ public class GLImageView extends GLView {
         mPaint.setColor(COLOR_OUTLINE);
         mPaint.setLineWidth(OUTLINE_WIDTH);
         mTempRect = new RectF();
+        mTempPoint = new PointF();
 
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         mGestureDetector = new GestureDetector(mContext, new GestureListener());
@@ -90,6 +93,10 @@ public class GLImageView extends GLView {
     public void setSpotlightRatio(float ratioX, float ratioY) {
         mSpotlightRatioX = ratioX;
         mSpotlightRatioY = ratioY;
+    }
+
+    public void setCanOverScroll(boolean canOverScroll) {
+        mCanOverScroll = canOverScroll;
     }
 
     @Override
@@ -337,6 +344,54 @@ public class GLImageView extends GLView {
         return true;
     }
 
+    private PointF getMoveDelta(float delX, float delY) {
+        if (mCanOverScroll) {
+            mTempPoint.set(delX, delY);
+            return mTempPoint;
+        }
+
+        float actDelX = 0;
+        float actDelY = 0;
+
+        float offsetX = getWidth() * 0.5f;
+        float offsetY = getHeight() * 0.5f;
+        float x = mCurrMultiCenterX;
+        float y = mCurrMultiCenterY;
+        float s = mCurrMultiScale;
+
+        mTempRect.set(
+                offsetX + (-x) * s,
+                offsetY + (-y) * s,
+                offsetX + (mImageWidth - x) * s,
+                offsetY + (mImageHeight - y) * s);
+
+        int width = getWidth();
+        int height = getHeight();
+        if (mTempRect.left > 0 || mTempRect.right < width) {
+            actDelX = 0;
+            actDelY = 0;
+        } else {
+            mTempRect.offset(delX, 0);
+            if (mTempRect.left > 0) {
+                actDelX = 0 - mTempRect.left;
+            } else if (mTempRect.right < width) {
+                actDelX = width - mTempRect.right;
+            }
+        }
+
+        if (mTempRect.top > 0 || mTempRect.bottom < height) {
+            mTempRect.offset(0, delY);
+            if (mTempRect.top > 0) {
+                actDelY = 0 - mTempRect.top;
+            } else if (mTempRect.bottom < height) {
+                actDelY = height - mTempRect.bottom;
+            }
+        }
+
+        mTempPoint.set(actDelX, actDelY);
+        return mTempPoint;
+    }
+
     @Override
     protected boolean onTouch(MotionEvent event) {
         mGestureDetector.onTouchEvent(event);
@@ -367,10 +422,11 @@ public class GLImageView extends GLView {
 
 
     private void onMoving(float delX, float delY) {
-        delX = delX / mCurrMultiScale;
-        delY = delY / mCurrMultiScale;
-        mCurrMultiCenterX += delX;
-        mCurrMultiCenterY += delY;
+        PointF temp = getMoveDelta(delX, delY);
+        float moveX = temp.x / mCurrMultiScale;
+        float moveY = temp.y / mCurrMultiScale;
+        mCurrMultiCenterX += moveX;
+        mCurrMultiCenterY += moveY;
     }
 
     private void initialize() {
@@ -417,7 +473,7 @@ public class GLImageView extends GLView {
 
         mAnimation.reset();
         mAnimation.mapRect(mTempRect);
-        if (mTempRect.top > 0 || mTempRect.bottom < getHeight()) {
+        if (mTempRect.top > 0 || mTempRect.bottom < height) {
             needAnim = true;
             float limitY = (height / 2) / mTotalScale;
             if (mImageHeight * mTotalScale > height) {
