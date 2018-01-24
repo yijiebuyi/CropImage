@@ -209,6 +209,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
     protected void onPause() {
         super.onPause();
 
+        mGLRootView.onPause();
         mGLRootView.lockRenderThread();
         try {
             Future<BitmapRegionDecoder> loadTask = mLoadTask;
@@ -236,7 +237,6 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
             }
             CropBusiness.clearInput(this);
             mCropView.pause();
-            mGLRootView.onPause();
         } finally {
             mGLRootView.unlockRenderThread();
         }
@@ -566,10 +566,12 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
                     public void onFutureDone(Future<Intent> future) {
                         mSaveTask = null;
                         if (future.isCancelled()) {
+                            Log.i("aaa", "*********cancel**************");
                             return;
                         }
 
                         Intent intent = future.get();
+                        Log.i("aaa", "=========succ======" + System.currentTimeMillis());
                         if (intent != null) {
                             if (intent.getData() == Uri.parse("sdcard_not_available")) {
                                 mHandler.sendEmptyMessage(MSG_SDCARD_NOT_AVAILABLE);
@@ -724,6 +726,7 @@ public abstract class BaseCropActivity extends FragmentActivity implements CropC
 
     private void showLoadingProgressDialog() {
         mProgressDialog = ProgressHUD.create(this);
+        mProgressDialog.setCancellable(true);
         mProgressDialog.show();
     }
 

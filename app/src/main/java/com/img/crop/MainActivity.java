@@ -97,7 +97,6 @@ public class MainActivity extends Activity {
                         //Bitmap bitmap = BitmapFactory.decodeFile(uri.getPath());
                         //mImageView.setImageBitmap(bitmap);
 
-
                         Intent intent = new Intent(CROP_ACTION, uri);
                         intent.setClass(this, ImageViewActivity.class);
                         startActivity(intent);
