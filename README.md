@@ -7,3 +7,7 @@
 - 支持图片任意拖动，缩放
 - 支持自定义尺寸的裁剪
 - 使用OpenGL加载图片，对图片进行区域解码
+
+
+[sample]
+https://github.com/yijiebuyi/CropImage/blob/master/art/S90610-175118.jpg
