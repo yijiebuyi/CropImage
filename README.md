@@ -9,5 +9,4 @@
 - 使用OpenGL加载图片，对图片进行区域解码
 
 
-[sample]
-https://github.com/yijiebuyi/CropImage/blob/master/art/S90610-175118.jpg
+![sample](https://github.com/yijiebuyi/CropImage/blob/master/art/S90610-175118.jpg)
